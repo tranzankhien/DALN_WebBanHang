@@ -54,7 +54,7 @@ class ProviderController extends Controller
                     $user = User::create([
                         'name' => $socialUser->getName(),
                         'email' => $socialUser->getEmail(),
-                        'username' => $socialUser->getEmail(),
+                        'username' => $socialUser->getName(),
                         'provider' => $provider,
                         'provider_id' => $socialUser->getId(),
                         'provider_token' => $socialUser->token ?? null,
