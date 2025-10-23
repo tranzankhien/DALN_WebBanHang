@@ -22,3 +22,15 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# SSL Certificates (sensitive)
+ca.pem
+*.pem
+*.crt
+*.key
+
+# Credentials files (NEVER commit these!)
+CREDENTIALS_PRIVATE.md
+*_PRIVATE.md
+credentials.txt
+secrets.txt
