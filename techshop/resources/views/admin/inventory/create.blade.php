@@ -41,9 +41,9 @@
             </div>
 
             <!-- Category -->
-            <div>
+            <div class="md:col-span-2">
                 <label for="category_id" class="block text-sm font-medium text-gray-700">Danh mục *</label>
-                <select name="category_id" id="category_id" required
+                <select name="category_id" id="category_id" required onchange="loadCategoryAttributes()"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('category_id') border-red-500 @enderror">
                     <option value="">-- Chọn danh mục --</option>
                     @foreach($categories as $category)
@@ -56,7 +56,24 @@
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+        </div>
 
+        <!-- Dynamic Attributes Section -->
+        <div id="attributes-container" class="mt-6 hidden">
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    Thông tin chi tiết sản phẩm
+                </h3>
+                <div id="attributes-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dynamic fields will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <!-- Cost Price -->
             <div>
                 <label for="cost_price" class="block text-sm font-medium text-gray-700">Giá nhập *</label>
@@ -96,4 +113,67 @@
         </div>
     </form>
 </div>
+
+<script>
+function loadCategoryAttributes() {
+    const categoryId = document.getElementById('category_id').value;
+    const container = document.getElementById('attributes-container');
+    const fieldsContainer = document.getElementById('attributes-fields');
+    
+    if (!categoryId) {
+        container.classList.add('hidden');
+        fieldsContainer.innerHTML = '';
+        return;
+    }
+    
+    // Show loading state
+    fieldsContainer.innerHTML = '<div class="col-span-2 text-center py-4"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p class="mt-2 text-sm text-gray-600">Đang tải thông tin...</p></div>';
+    container.classList.remove('hidden');
+    
+    // Fetch attributes for this category
+    fetch(`/admin/inventory/attributes/${categoryId}`)
+        .then(response => response.json())
+        .then(attributes => {
+            if (attributes.length === 0) {
+                container.classList.add('hidden');
+                fieldsContainer.innerHTML = '';
+                return;
+            }
+            
+            // Build attribute fields
+            let html = '';
+            attributes.forEach(attr => {
+                const fieldId = `attribute_${attr.id}`;
+                html += `
+                    <div>
+                        <label for="${fieldId}" class="block text-sm font-medium text-gray-700">
+                            ${attr.name} ${attr.unit ? `<span class="text-gray-500 text-xs">(${attr.unit})</span>` : ''}
+                        </label>
+                        <input 
+                            type="text" 
+                            name="attributes[${attr.id}]" 
+                            id="${fieldId}"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                            placeholder="Nhập ${attr.name.toLowerCase()}...">
+                    </div>
+                `;
+            });
+            
+            fieldsContainer.innerHTML = html;
+            container.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error loading attributes:', error);
+            fieldsContainer.innerHTML = '<div class="col-span-2 text-center py-4 text-red-600">Không thể tải thông tin thuộc tính</div>';
+        });
+}
+
+// Load attributes if category is pre-selected (e.g., from old input after validation error)
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryId = document.getElementById('category_id').value;
+    if (categoryId) {
+        loadCategoryAttributes();
+    }
+});
+</script>
 @endsection

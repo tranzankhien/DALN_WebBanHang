@@ -69,7 +69,7 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        $category = Category::with(['parent', 'children', 'inventoryItems'])
+        $category = Category::with(['parent', 'children', 'inventoryItems', 'productAttributes.attributeValues'])
             ->findOrFail($id);
         
         return view('admin.categories.show', compact('category'));
