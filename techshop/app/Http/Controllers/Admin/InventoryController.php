@@ -72,20 +72,28 @@ class InventoryController extends Controller
             'cost_price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'attributes' => 'nullable|array',
-            'attributes.*.attribute_id' => 'required|exists:product_attributes,id',
-            'attributes.*.value' => 'required|max:100',
         ]);
 
-        $item = InventoryItem::create($validated);
+        $item = InventoryItem::create([
+            'sku' => $validated['sku'],
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'brand' => $validated['brand'] ?? null,
+            'category_id' => $validated['category_id'],
+            'cost_price' => $validated['cost_price'],
+            'stock_quantity' => $validated['stock_quantity'],
+        ]);
 
         // Save attributes if provided
-        if ($request->has('attributes')) {
-            foreach ($request->attributes as $attr) {
-                ProductAttributeValue::create([
-                    'inventory_item_id' => $item->id,
-                    'attribute_id' => $attr['attribute_id'],
-                    'value' => $attr['value'],
-                ]);
+        if ($request->has('attributes') && is_array($request->attributes)) {
+            foreach ($request->attributes as $attributeId => $value) {
+                if (!empty($value)) {
+                    ProductAttributeValue::create([
+                        'inventory_item_id' => $item->id,
+                        'attribute_id' => $attributeId,
+                        'value' => $value,
+                    ]);
+                }
             }
         }
 
