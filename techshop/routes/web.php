@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProductController as PublicProductController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 
 // Homepage - accessible by everyone
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Public product information page
+Route::get('/product/{id}', [PublicProductController::class, 'productInformation'])->name('productInformation');
 
 // Social Login Routes
 Route::get('/auth/{provider}/redirect', [ProviderController::class, 'redirect'])
