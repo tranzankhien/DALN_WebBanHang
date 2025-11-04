@@ -122,97 +122,242 @@
             </div>
         </div>
     </header>
-    <div class="max-w-7xl mx-auto p-4 sm:p-6">
 
+    <!-- Breadcrumb -->
+    <div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex items-center text-sm text-gray-600">
+                <a href="{{ route('home') }}" class="hover:text-blue-600">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-400">{{ optional($product->inventoryItem->category)->name ?? 'Sản phẩm' }}</span>
+            </div>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-lg shadow p-6">
-            <!-- Gallery -->
-            <div class="md:col-span-1">
-                <div class="w-full bg-gray-100 rounded-lg overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Product Details Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-lg shadow-lg p-6">
+            <!-- Left: Image Gallery with Navigation Arrows -->
+            <div class="relative">
+                <div class="relative bg-white rounded-lg overflow-hidden border-2 border-gray-200">
                     @php
                     $images = $product->images;
-                    $main = $images->where('is_main', true)->first() ?? $images->first();
+                    $imageArray = $images->values()->all();
+                    $mainImageIndex = 0;
+                    foreach($imageArray as $index => $img) {
+                        if($img->is_main) {
+                            $mainImageIndex = $index;
+                            break;
+                        }
+                    }
                     @endphp
-                    @if($main)
-                    <img id="main-image" src="{{ $main->image_url }}" alt="{{ $product->name }}"
-                        class="w-full h-80 object-contain bg-white">
-                    @else
-                    <div class="w-full h-80 flex items-center justify-center text-gray-300">
-                        Không có ảnh
+                    
+                    @if(count($imageArray) > 0)
+                    <!-- Main Image -->
+                    <div class="relative h-[500px] flex items-center justify-center bg-white">
+                        <img id="main-image" src="{{ $imageArray[$mainImageIndex]->image_url }}" 
+                             alt="{{ $product->name }}"
+                             class="max-h-full max-w-full object-contain p-4">
+                        
+                        <!-- Navigation Arrows -->
+                        @if(count($imageArray) > 1)
+                        <button onclick="previousImage()" 
+                                class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all hover:scale-110">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button onclick="nextImage()" 
+                                class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition-all hover:scale-110">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        @endif
                     </div>
-                    @endif
 
-                    @if($images->count() > 1)
-                    <div class="mt-3 grid grid-cols-4 gap-2">
-                        @foreach($images as $img)
-                        <button type="button" class="border rounded p-1 bg-white"
-                            onclick="document.getElementById('main-image').src='{{ $img->image_url }}'">
-                            <img src="{{ $img->image_url }}" class="w-full h-16 object-cover" alt="thumb">
+                    <!-- Thumbnail Images -->
+                    @if(count($imageArray) > 1)
+                    <div class="flex gap-2 p-4 bg-gray-50 overflow-x-auto">
+                        @foreach($imageArray as $index => $img)
+                        <button type="button" 
+                                onclick="changeImage({{ $index }})"
+                                class="flex-shrink-0 border-2 rounded-lg overflow-hidden hover:border-blue-500 transition thumbnail-btn {{ $index == $mainImageIndex ? 'border-blue-500' : 'border-gray-300' }}"
+                                data-index="{{ $index }}">
+                            <img src="{{ $img->image_url }}" class="w-20 h-20 object-cover" alt="">
                         </button>
                         @endforeach
+                    </div>
+                    @endif
+                    @else
+                    <div class="h-[500px] flex items-center justify-center text-gray-300">
+                        <div class="text-center">
+                            <svg class="w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="mt-2">Không có ảnh</p>
+                        </div>
                     </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Details -->
-            <div class="md:col-span-2">
-                <h1 class="text-2xl font-bold text-gray-900">{{ $product->name }}</h1>
-                <p class="text-sm text-gray-500 mt-1">Danh mục:
-                    {{ optional($product->inventoryItem->category)->name ?? '—' }}</p>
+            <!-- Right: Product Information -->
+            <div class="space-y-6">
+                <!-- Product Title -->
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 leading-tight">{{ $product->name }}</h1>
+                    <div class="flex items-center gap-4 mt-3 text-sm">
+                        <div class="flex items-center gap-1 text-yellow-500">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <span class="text-gray-700 font-medium">4.8</span>
+                            <span class="text-gray-500">({{ rand(100, 999) }} đánh giá)</span>
+                        </div>
+                        <span class="text-gray-400">|</span>
+                        <span class="text-gray-600">Đã bán: {{ rand(50, 500) }}</span>
+                    </div>
+                </div>
 
-                <div class="mt-4 flex items-center space-x-4">
-                    <div class="text-2xl font-semibold text-gray-900">
+                <!-- Category & Attributes -->
+                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="font-medium text-gray-600">Danh mục:</span>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                            {{ optional($product->inventoryItem->category)->name ?? 'Chưa phân loại' }}
+                        </span>
+                    </div>
+
+                    @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count())
+                    <div class="border-t pt-3 space-y-2">
+                        @foreach($product->inventoryItem->attributeValues as $av)
+                        <div class="flex items-center gap-2 text-sm">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium text-gray-600">{{ $av->attribute->name }}:</span>
+                            <span class="text-gray-900 font-semibold">{{ $av->value }}{{ $av->attribute->unit ? ' ' . $av->attribute->unit : '' }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Price Section -->
+                <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-5 border-2 border-red-200">
+                    <div class="flex items-baseline gap-3">
                         @if($product->discount_price)
-                        <span class="text-red-600">{{ number_format($product->discount_price) }}đ</span>
-                        <span
-                            class="text-sm text-gray-400 line-through ml-2">{{ number_format($product->price) }}đ</span>
+                        <div class="text-3xl font-bold text-red-600">
+                            {{ number_format($product->discount_price, 0, ',', '.') }}₫
+                        </div>
+                        <div class="text-lg text-gray-500 line-through">
+                            {{ number_format($product->price, 0, ',', '.') }}₫
+                        </div>
+                        <div class="px-2 py-1 bg-red-500 text-white text-sm font-bold rounded">
+                            -{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%
+                        </div>
                         @else
-                        <span>{{ number_format($product->price) }}đ</span>
+                        <div class="text-3xl font-bold text-gray-900">
+                            {{ number_format($product->price, 0, ',', '.') }}₫
+                        </div>
                         @endif
                     </div>
-                    <div class="text-sm text-gray-500">Số lượng: {{ $product->stock }}</div>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <span class="font-medium">Tình trạng:</span>
+                        @if($product->stock > 0)
+                        <span class="text-green-600 font-semibold">Còn hàng ({{ $product->stock }} sản phẩm)</span>
+                        @else
+                        <span class="text-red-600 font-semibold">Hết hàng</span>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="mt-6">
-                    <h3 class="font-medium text-gray-700">Mô tả</h3>
-                    <div class="mt-2 text-gray-700">{!! nl2br(e($product->description)) !!}</div>
+                <!-- Quantity Selector -->
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-700 font-medium">Số lượng:</span>
+                    <div class="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+                        <button type="button" onclick="decreaseQty()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                            </svg>
+                        </button>
+                        <input type="number" id="quantity" value="1" min="1" max="{{ $product->stock }}" 
+                               class="w-16 text-center py-2 border-0 focus:ring-0 font-semibold text-gray-900">
+                        <button type="button" onclick="increaseQty()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="text-sm text-gray-500">{{ $product->stock }} sản phẩm có sẵn</span>
                 </div>
 
-                @if(isset($product->inventoryItem->attributeValues) &&
-                $product->inventoryItem->attributeValues->count())
-                <div class="mt-6">
-                    <h3 class="font-medium text-gray-700">Thông số kỹ thuật</h3>
-                    <table class="w-full mt-2 text-sm text-gray-700">
-                        <tbody>
-                            @foreach($product->inventoryItem->attributeValues as $av)
-                            <tr class="border-t">
-                                <td class="py-2 font-medium">{{ $av->attribute->name ?? '—' }}</td>
-                                <td class="py-2 text-gray-600">{{ $av->value }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                @endif
-
-                <div class="mt-6 flex items-center space-x-3">
-                    <form method="POST" action="/cart/add" class="inline-block">
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <form method="POST" action="/cart/add" class="flex-1">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Thêm
-                            vào giỏ hàng</button>
+                        <input type="hidden" name="quantity" id="cart-quantity" value="1">
+                        <button type="submit" @if($product->stock <= 0) disabled @endif
+                                class="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Thêm vào giỏ hàng
+                        </button>
                     </form>
 
-                    <form method="POST" action="/orders/create" class="inline-block">
+                    <form method="POST" action="/orders/create" class="flex-1">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Đặt
-                            hàng</button>
+                        <input type="hidden" name="quantity" id="order-quantity" value="1">
+                        <button type="submit" @if($product->stock <= 0) disabled @endif
+                                class="w-full px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Mua ngay
+                        </button>
                     </form>
-
-                    <a href="#" class="ml-2 text-sm text-gray-500">Chia sẻ</a>
                 </div>
+
+                <!-- Additional Info -->
+                <div class="border-t pt-4 space-y-2 text-sm">
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Miễn phí vận chuyển cho đơn hàng từ 500.000₫</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                        <span>Bảo hành chính hãng 12 tháng</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Đổi trả trong 7 ngày nếu có lỗi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Description Section -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Mô tả sản phẩm
+            </h2>
+            <div class="prose max-w-none text-gray-700 leading-relaxed">
+                {!! nl2br(e($product->description ?: 'Chưa có mô tả chi tiết cho sản phẩm này.')) !!}
             </div>
         </div>
 
@@ -299,6 +444,88 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        // Image Gallery Navigation
+        const images = @json($imageArray ?? []);
+        let currentIndex = {{ $mainImageIndex ?? 0 }};
+
+        function changeImage(index) {
+            currentIndex = index;
+            const mainImage = document.getElementById('main-image');
+            mainImage.src = images[index].image_url;
+            
+            // Update thumbnail borders
+            document.querySelectorAll('.thumbnail-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.remove('border-gray-300');
+                    btn.classList.add('border-blue-500');
+                } else {
+                    btn.classList.remove('border-blue-500');
+                    btn.classList.add('border-gray-300');
+                }
+            });
+        }
+
+        function previousImage() {
+            if (images.length <= 1) return;
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            changeImage(currentIndex);
+        }
+
+        function nextImage() {
+            if (images.length <= 1) return;
+            currentIndex = (currentIndex + 1) % images.length;
+            changeImage(currentIndex);
+        }
+
+        // Quantity Controls
+        function decreaseQty() {
+            const qtyInput = document.getElementById('quantity');
+            const currentQty = parseInt(qtyInput.value) || 1;
+            if (currentQty > 1) {
+                qtyInput.value = currentQty - 1;
+                updateHiddenQuantities();
+            }
+        }
+
+        function increaseQty() {
+            const qtyInput = document.getElementById('quantity');
+            const maxQty = parseInt(qtyInput.getAttribute('max')) || 999;
+            const currentQty = parseInt(qtyInput.value) || 1;
+            if (currentQty < maxQty) {
+                qtyInput.value = currentQty + 1;
+                updateHiddenQuantities();
+            }
+        }
+
+        function updateHiddenQuantities() {
+            const qty = document.getElementById('quantity').value;
+            document.getElementById('cart-quantity').value = qty;
+            document.getElementById('order-quantity').value = qty;
+        }
+
+        // Update hidden inputs when quantity changes manually
+        document.getElementById('quantity')?.addEventListener('change', function() {
+            const maxQty = parseInt(this.getAttribute('max')) || 999;
+            let value = parseInt(this.value) || 1;
+            
+            if (value < 1) value = 1;
+            if (value > maxQty) value = maxQty;
+            
+            this.value = value;
+            updateHiddenQuantities();
+        });
+
+        // Keyboard navigation for images
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                previousImage();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            }
+        });
+    </script>
 </body>
 
 </html>

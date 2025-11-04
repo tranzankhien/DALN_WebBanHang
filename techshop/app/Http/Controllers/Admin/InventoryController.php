@@ -200,4 +200,30 @@ class InventoryController extends Controller
         $attributes = ProductAttribute::where('category_id', $request->category_id)->get();
         return response()->json($attributes);
     }
+
+    /**
+     * Get inventory item details with attributes for product creation
+     */
+    public function getDetails($id)
+    {
+        $item = InventoryItem::with(['category', 'attributeValues.attribute'])
+            ->find($id);
+
+        if (!$item) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm'], 404);
+        }
+
+        $attributes = $item->attributeValues->map(function ($attrValue) {
+            return [
+                'name' => $attrValue->attribute->name,
+                'value' => $attrValue->value,
+                'unit' => $attrValue->attribute->unit,
+            ];
+        });
+
+        return response()->json([
+            'category' => $item->category->name,
+            'attributes' => $attributes,
+        ]);
+    }
 }

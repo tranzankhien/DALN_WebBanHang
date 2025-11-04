@@ -47,6 +47,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Inventory Management (Quản lý kho)
     Route::resource('inventory', InventoryController::class);
+    Route::get('inventory/{id}/details', [InventoryController::class, 'getDetails'])
+        ->name('inventory.details');
     Route::get('inventory/attributes/{category_id}', [InventoryController::class, 'getAttributesByCategory'])
         ->name('inventory.attributes');
     

@@ -17,7 +17,7 @@
             <h3 class="text-lg font-medium text-blue-900 mb-4">Bước 1: Chọn sản phẩm từ kho</h3>
             <div>
                 <label for="inventory_item_id" class="block text-sm font-medium text-gray-700">Sản phẩm trong kho *</label>
-                <select name="inventory_item_id" id="inventory_item_id" required
+                <select name="inventory_item_id" id="inventory_item_id" required onchange="loadInventoryDetails()"
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('inventory_item_id') border-red-500 @enderror">
                     <option value="">-- Chọn sản phẩm --</option>
                     @foreach($inventoryItems as $item)
@@ -33,7 +33,21 @@
                 @error('inventory_item_id')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-1 text-xs text-gray-500" id="selected-info"></p>
+            </div>
+
+            <!-- Inventory Item Details -->
+            <div id="inventory-details" class="mt-4 hidden">
+                <div class="bg-white rounded-lg p-4 border border-blue-300">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Thông tin sản phẩm từ kho
+                    </h4>
+                    <div id="inventory-info" class="space-y-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -156,6 +170,82 @@
             document.getElementById('selected-info').textContent = `Tồn kho: ${option.dataset.stock} sản phẩm`;
         }
     });
+
+    // Load inventory details with attributes
+    function loadInventoryDetails() {
+        const inventoryId = document.getElementById('inventory_item_id').value;
+        const detailsDiv = document.getElementById('inventory-details');
+        const infoDiv = document.getElementById('inventory-info');
+        
+        if (!inventoryId) {
+            detailsDiv.classList.add('hidden');
+            return;
+        }
+
+        // Show loading
+        detailsDiv.classList.remove('hidden');
+        infoDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Đang tải...</p>';
+
+        // Fetch inventory details
+        fetch(`/admin/inventory/${inventoryId}/details`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    infoDiv.innerHTML = `<p class="text-red-500">${data.error}</p>`;
+                    return;
+                }
+
+                let html = '';
+                
+                // Category info
+                html += `
+                    <div class="mb-4">
+                        <span class="text-sm font-medium text-gray-700">Danh mục:</span>
+                        <span class="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            ${data.category}
+                        </span>
+                    </div>
+                `;
+
+                // Attributes
+                if (data.attributes && data.attributes.length > 0) {
+                    html += `
+                        <div class="mb-2">
+                            <span class="text-sm font-medium text-gray-700 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                Thông số kỹ thuật:
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    `;
+
+                    data.attributes.forEach(attr => {
+                        html += `
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-purple-900">${attr.name}</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        ${attr.value} ${attr.unit || ''}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                } else {
+                    html += '<p class="text-gray-500 text-sm">Không có thông số kỹ thuật</p>';
+                }
+
+                infoDiv.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                infoDiv.innerHTML = '<p class="text-red-500">Lỗi khi tải thông tin</p>';
+            });
+    }
 
     function addImageRow() {
         const container = document.getElementById('images-container');

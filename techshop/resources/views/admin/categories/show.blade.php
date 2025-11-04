@@ -112,12 +112,13 @@
                         <h2 class="text-lg font-semibold text-gray-900">Thuộc tính sản phẩm ({{ $category->productAttributes->count() }})</h2>
                         <p class="mt-1 text-sm text-gray-600">Các trường thông tin sẽ hiển thị khi thêm sản phẩm thuộc danh mục này</p>
                     </div>
-                    <button onclick="openAddAttributeModal()" class="inline-flex items-center px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition" style="background-color: #001faaff;">
+                    <a href="{{ route('admin.categories.edit', $category->id) }}" 
+                       class="inline-flex items-center px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition" style="background-color: #001faaff;">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Thêm thuộc tính
-                    </button>
+                        Chỉnh sửa thuộc tính
+                    </a>
                 </div>
             </div>
             <div class="px-6 py-4">
@@ -334,86 +335,4 @@
     </div>
 </div>
 
-<!-- Add/Edit Attribute Modal -->
-<div id="attributeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Thêm thuộc tính mới</h3>
-            <button onclick="closeAttributeModal()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <form id="attributeForm" method="POST" action="{{ route('admin.attributes.store') }}">
-            @csrf
-            <input type="hidden" name="_method" id="formMethod" value="POST">
-            <input type="hidden" name="category_id" value="{{ $category->id }}">
-            <input type="hidden" id="attributeId" name="attribute_id" value="">
-            
-            <div class="space-y-4">
-                <div>
-                    <label for="attribute_name" class="block text-sm font-medium text-gray-700">Tên thuộc tính <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="attribute_name" required 
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                        placeholder="VD: Hãng, Kích thước, Tần số quét...">
-                    <p class="mt-1 text-xs text-gray-500">Tên thuộc tính sẽ hiển thị khi thêm sản phẩm</p>
-                </div>
-
-                <div>
-                    <label for="attribute_unit" class="block text-sm font-medium text-gray-700">Đơn vị (Tùy chọn)</label>
-                    <input type="text" name="unit" id="attribute_unit"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                        placeholder="VD: Hz, inch, GB...">
-                    <p class="mt-1 text-xs text-gray-500">Đơn vị đo lường cho thuộc tính</p>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" onclick="closeAttributeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                    Hủy
-                </button>
-                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700" style="background-color: #001faaff;">
-                    <span id="submitButtonText" >Thêm thuộc tính</span>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-function openAddAttributeModal() {
-    document.getElementById('modalTitle').textContent = 'Thêm thuộc tính mới';
-    document.getElementById('submitButtonText').textContent = 'Thêm thuộc tính';
-    document.getElementById('attributeForm').action = '{{ route("admin.attributes.store") }}';
-    document.getElementById('formMethod').value = 'POST';
-    document.getElementById('attributeId').value = '';
-    document.getElementById('attribute_name').value = '';
-    document.getElementById('attribute_unit').value = '';
-    document.getElementById('attributeModal').classList.remove('hidden');
-}
-
-function editAttribute(id, name, unit) {
-    document.getElementById('modalTitle').textContent = 'Chỉnh sửa thuộc tính';
-    document.getElementById('submitButtonText').textContent = 'Cập nhật';
-    document.getElementById('attributeForm').action = '/admin/attributes/' + id;
-    document.getElementById('formMethod').value = 'PUT';
-    document.getElementById('attributeId').value = id;
-    document.getElementById('attribute_name').value = name;
-    document.getElementById('attribute_unit').value = unit || '';
-    document.getElementById('attributeModal').classList.remove('hidden');
-}
-
-function closeAttributeModal() {
-    document.getElementById('attributeModal').classList.add('hidden');
-}
-
-// Close modal when clicking outside
-document.getElementById('attributeModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAttributeModal();
-    }
-});
-</script>
 @endsection
