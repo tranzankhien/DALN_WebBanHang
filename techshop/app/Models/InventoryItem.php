@@ -21,6 +21,12 @@ class InventoryItem extends Model
         'stock_quantity' => 'integer',
     ];
 
+    // Accessor for backward compatibility
+    public function getQuantityAttribute()
+    {
+        return $this->stock_quantity;
+    }
+
     // Relationships
     public function category()
     {

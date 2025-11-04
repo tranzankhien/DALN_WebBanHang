@@ -284,7 +284,7 @@
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-sm opacity-90">Tổng số lượng</span>
-                    <span class="text-2xl font-bold">{{ number_format($category->inventoryItems->sum('quantity')) }}</span>
+                    <span class="text-2xl font-bold">{{ number_format($category->inventoryItems->sum('stock_quantity')) }}</span>
                 </div>
             </div>
         </div>
