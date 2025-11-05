@@ -34,3 +34,16 @@ CREDENTIALS_PRIVATE.md
 *_PRIVATE.md
 credentials.txt
 secrets.txt
+
+# Codespace-specific configurations
+.devcontainer
+/.devcontainer.json
+devcontainer.json
+
+# Setup scripts (local only)
+setup-*.sh
+start-dev.sh
+
+# IDE cache and temporary files
+.env.local
+.env.*.local
