@@ -70,27 +70,6 @@
                     <p class="mt-1 text-xs text-gray-500">URL thân thiện (chỉ chữ thường, số và gạch ngang)</p>
                 </div>
 
-                <!-- Parent Category -->
-                <div>
-                    <label for="parent_id" class="block text-sm font-medium text-gray-700">
-                        Danh mục cha
-                    </label>
-                    <select name="parent_id" 
-                            id="parent_id"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 
-                                   @error('parent_id') border-red-500 @enderror">
-                        <option value="">-- Không có (danh mục gốc) --</option>
-                        @foreach($parentCategories as $parent)
-                            <option value="{{ $parent->id }}" {{ old('parent_id', $category->parent_id) == $parent->id ? 'selected' : '' }}>
-                                {{ $parent->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('parent_id')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
                 <!-- Status -->
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">

@@ -222,29 +222,61 @@
                     </div>
                 </div>
 
-                <!-- Category & Attributes -->
-                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div class="flex items-center gap-2 text-sm">
-                        <span class="font-medium text-gray-600">Danh mục:</span>
-                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                <!-- Category -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <span class="font-semibold text-gray-700">Danh mục:</span>
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-sm shadow-md">
                             {{ optional($product->inventoryItem->category)->name ?? 'Chưa phân loại' }}
                         </span>
                     </div>
+                </div>
 
-                    @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count())
-                    <div class="border-t pt-3 space-y-2">
-                        @foreach($product->inventoryItem->attributeValues as $av)
-                        <div class="flex items-center gap-2 text-sm">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <!-- Product Attributes / Specifications -->
+                @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count() > 0)
+                <div class="bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-3">
+                        <h3 class="font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                             </svg>
-                            <span class="font-medium text-gray-600">{{ $av->attribute->name }}:</span>
-                            <span class="text-gray-900 font-semibold">{{ $av->value }}{{ $av->attribute->unit ? ' ' . $av->attribute->unit : '' }}</span>
+                            Thông số kỹ thuật
+                        </h3>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        @foreach($product->inventoryItem->attributeValues as $index => $av)
+                        <div class="flex items-center px-4 py-3 hover:bg-gray-50 transition {{ $index % 2 == 0 ? 'bg-gray-50' : 'bg-white' }}">
+                            <div class="flex-1 flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                                <span class="font-semibold text-gray-700 min-w-[120px]">{{ $av->attribute->name }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-900 font-bold text-lg">{{ $av->value }}</span>
+                                @if($av->attribute->unit)
+                                <span class="text-gray-500 text-sm font-medium">{{ $av->attribute->unit }}</span>
+                                @endif
+                            </div>
                         </div>
                         @endforeach
                     </div>
-                    @endif
                 </div>
+                @else
+                <!-- No Attributes Available -->
+                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold text-yellow-800">Chưa có thông số kỹ thuật</h4>
+                            <p class="text-sm text-yellow-700 mt-1">Thông tin chi tiết về sản phẩm sẽ được cập nhật sớm nhất.</p>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Price Section -->
                 <div class="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-5 border-2 border-red-200">
@@ -348,16 +380,91 @@
             </div>
         </div>
 
-        <!-- Product Description Section -->
-        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Mô tả sản phẩm
-            </h2>
-            <div class="prose max-w-none text-gray-700 leading-relaxed">
-                {!! nl2br(e($product->description ?: 'Chưa có mô tả chi tiết cho sản phẩm này.')) !!}
+        <!-- Product Description & Specifications Section -->
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Product Description (2/3 width) -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Mô tả sản phẩm
+                </h2>
+                <div class="prose max-w-none text-gray-700 leading-relaxed">
+                    {!! nl2br(e($product->description ?: 'Chưa có mô tả chi tiết cho sản phẩm này.')) !!}
+                </div>
+            </div>
+
+            <!-- Right: Technical Specifications (1/3 width) -->
+            <div class="lg:col-span-1">
+                @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count() > 0)
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden sticky top-4">
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-4">
+                        <h3 class="font-bold text-white text-lg flex items-center gap-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Thông số kỹ thuật
+                        </h3>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full">
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach($product->inventoryItem->attributeValues as $av)
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-3 pr-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                            <span class="text-sm font-semibold text-gray-700">{{ $av->attribute->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-bold text-gray-900">{{ $av->value }}</span>
+                                        @if($av->attribute->unit)
+                                        <span class="text-xs text-gray-500 ml-1">{{ $av->attribute->unit }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Additional Product Info -->
+                    <div class="bg-gray-50 px-5 py-4 border-t border-gray-200">
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-gray-700">Sản phẩm chính hãng 100%</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                                <span class="text-gray-700">Bảo hành chính hãng 12 tháng</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                </svg>
+                                <span class="text-gray-700">Hỗ trợ trả góp 0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @else
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center py-8">
+                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Chưa có thông số kỹ thuật</h3>
+                        <p class="text-sm text-gray-500">Thông tin sẽ được cập nhật sớm</p>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 

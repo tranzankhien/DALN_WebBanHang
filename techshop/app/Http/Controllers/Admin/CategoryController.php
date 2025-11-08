@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\ProductAttribute;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -26,11 +27,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        $parentCategories = Category::whereNull('parent_id')
-            ->where('status', 'active')
-            ->get();
-        
-        return view('admin.categories.create', compact('parentCategories'));
+        return view('admin.categories.create');
     }
 
     /**
@@ -39,13 +36,16 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'parent_id' => 'nullable|exists:categories,id',
             'name' => 'required|max:100',
             'slug' => 'nullable|unique:categories,slug|max:100',
             'description' => 'nullable',
             'image_url' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive',
             'display_order' => 'nullable|integer|min:0',
+            'attributes' => 'nullable|array',
+            'attributes.*.name' => 'required|string|max:100',
+            'attributes.*.unit' => 'nullable|string|max:50',
+            'attributes.*.input_type' => 'required|in:text,number,select',
         ]);
 
         // Auto generate slug if not provided
@@ -58,10 +58,31 @@ class CategoryController extends Controller
             $validated['display_order'] = Category::max('display_order') + 1;
         }
 
-        Category::create($validated);
+        // Create category
+        $category = Category::create([
+            'name' => $validated['name'],
+            'slug' => $validated['slug'],
+            'description' => $validated['description'] ?? null,
+            'image_url' => $validated['image_url'] ?? null,
+            'status' => $validated['status'],
+            'display_order' => $validated['display_order'],
+        ]);
+
+        // Create attributes if provided
+        if (!empty($validated['attributes'])) {
+            foreach ($validated['attributes'] as $attr) {
+                ProductAttribute::create([
+                    'category_id' => $category->id,
+                    'name' => $attr['name'],
+                    'unit' => $attr['unit'] ?? null,
+                    'input_type' => $attr['input_type'],
+                ]);
+            }
+        }
 
         return redirect()->route('admin.categories.index')
-            ->with('success', 'Danh mục đã được tạo thành công!');
+            ->with('success', 'Danh mục đã được tạo thành công!' . 
+                   (!empty($validated['attributes']) ? ' Đã thêm ' . count($validated['attributes']) . ' thuộc tính.' : ''));
     }
 
     /**
@@ -81,12 +102,8 @@ class CategoryController extends Controller
     public function edit(string $id)
     {
         $category = Category::findOrFail($id);
-        $parentCategories = Category::whereNull('parent_id')
-            ->where('id', '!=', $id)
-            ->where('status', 'active')
-            ->get();
         
-        return view('admin.categories.edit', compact('category', 'parentCategories'));
+        return view('admin.categories.edit', compact('category'));
     }
 
     /**
@@ -97,7 +114,6 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
-            'parent_id' => 'nullable|exists:categories,id',
             'name' => 'required|max:100',
             'slug' => 'required|max:100|unique:categories,slug,' . $id,
             'description' => 'nullable',
@@ -105,11 +121,6 @@ class CategoryController extends Controller
             'status' => 'required|in:active,inactive',
             'display_order' => 'nullable|integer|min:0',
         ]);
-
-        // Prevent category from being its own parent
-        if ($validated['parent_id'] == $id) {
-            return back()->withErrors(['parent_id' => 'Danh mục không thể là danh mục con của chính nó!']);
-        }
 
         $category->update($validated);
 
@@ -123,12 +134,6 @@ class CategoryController extends Controller
     public function destroy(string $id)
     {
         $category = Category::findOrFail($id);
-
-        // Check if category has children
-        if ($category->children()->count() > 0) {
-            return redirect()->route('admin.categories.index')
-                ->with('error', 'Không thể xóa danh mục có danh mục con!');
-        }
 
         // Check if category has inventory items
         if ($category->inventoryItems()->count() > 0) {
