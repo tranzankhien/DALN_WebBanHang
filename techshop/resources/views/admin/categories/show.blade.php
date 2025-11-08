@@ -123,7 +123,7 @@
             </div>
             <div class="px-6 py-4">
                 <!-- Example Info Box -->
-                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <!-- <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div class="flex items-start">
                         <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -143,7 +143,7 @@
                             </p>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 @if($category->productAttributes->count() > 0)
                 <div class="space-y-3">
@@ -242,33 +242,6 @@
 
     <!-- Sidebar -->
     <div class="space-y-6">
-        <!-- Hierarchy Card -->
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-lg font-semibold text-gray-900">Phân cấp</h2>
-            </div>
-            <div class="px-6 py-4">
-                @if($category->parent)
-                <div class="mb-4">
-                    <label class="text-sm font-medium text-gray-500">Danh mục cha</label>
-                    <a href="{{ route('admin.categories.show', $category->parent->id) }}" class="mt-2 flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                        </svg>
-                        <span class="text-sm font-medium text-gray-900">{{ $category->parent->name }}</span>
-                    </a>
-                </div>
-                @else
-                <div class="text-center py-4">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                    </svg>
-                    <p class="mt-2 text-sm text-gray-500">Đây là danh mục gốc</p>
-                </div>
-                @endif
-            </div>
-        </div>
-
         <!-- Statistics Card -->
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 shadow rounded-lg overflow-hidden text-white">
             <div class="px-6 py-4">
@@ -276,8 +249,8 @@
             </div>
             <div class="px-6 py-4 space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm opacity-90">Danh mục con</span>
-                    <span class="text-2xl font-bold">{{ $category->children->count() }}</span>
+                    <span class="text-sm opacity-90">Thuộc tính</span>
+                    <span class="text-2xl font-bold">{{ $category->productAttributes->count() }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-sm opacity-90">Sản phẩm</span>
