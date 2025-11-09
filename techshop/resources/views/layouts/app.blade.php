@@ -31,7 +31,12 @@
 
         <!-- Page Content -->
         <main>
-            {{ $slot }}
+            @hasSection('content')
+                @yield('content')
+            @else
+                {{-- Support Blade component slot (for views rendered as components) --}}
+                {{ $slot ?? '' }}
+            @endif
         </main>
     </div>
 </body>
