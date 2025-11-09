@@ -17,6 +17,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Public product information page
 Route::get('/product/{id}', [PublicProductController::class, 'productInformation'])->name('productInformation');
 
+// Public product search (full results page)
+Route::get('/products/search', [PublicProductController::class, 'search'])->name('products.search');
+
 // Social Login Routes
 Route::get('/auth/{provider}/redirect', [ProviderController::class, 'redirect'])
     ->name('social.redirect');
@@ -66,6 +69,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->name('products.publish');
     Route::post('products/{id}/unpublish', [ProductController::class, 'unpublish'])
         ->name('products.unpublish');
+
+    // Advertisment Management (Quản lý quảng cáo)
+    Route::resource('advertisments', App\Http\Controllers\Admin\AdvertismentController::class)->except(['show']);
+
 });
 
 require __DIR__.'/auth.php';
+
+// Ensure a named 'home' route exists. Some environments/packages may register a
+// route for '/' without a name; we explicitly (re)declare the named route to
+// guarantee route('home') works across views and redirects.
+// If the route is already defined with name 'home', this will create a
+// duplicate route but the name will be available for URL generation.
+// Check router for an existing named 'home' route; if missing, (re)declare it.
+if (app('router')->getRoutes()->getByName('home') === null) {
+    \Illuminate\Support\Facades\Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+}
+
+

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Advertisment;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -41,6 +42,15 @@ class HomeController extends Controller
                 ->take(10)
                 ->get();
         }
-        return view('home', compact('featuredProducts', 'latestProducts', 'categories'));
+        // Get advertisments (if table exists, model will query it)
+        $ads = collect();
+        try {
+            $ads = Advertisment::orderBy('id_advert', 'desc')->get();
+        } catch (\Exception $e) {
+            // If table doesn't exist or query fails, keep $ads empty - view will handle fallback
+            $ads = collect();
+        }
+
+        return view('home', compact('featuredProducts', 'latestProducts', 'categories', 'ads'));
     }
 }

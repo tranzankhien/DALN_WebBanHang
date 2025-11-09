@@ -34,4 +34,25 @@ class ProductController extends Controller
 
         return view('product.information', compact('product', 'suggestions'));
     }
+
+    /**
+     * Search products page (full results).
+     * Route: products.search
+     */
+    public function search(\Illuminate\Http\Request $request)
+    {
+        $keyword = trim($request->query('keyword', ''));
+
+        $query = Product::with(['images', 'inventoryItem'])
+            ->where('status', 'active');
+
+        if ($keyword !== '') {
+            // simple LIKE search; can be swapped to FULLTEXT later
+            $query->where('name', 'like', '%' . $keyword . '%');
+        }
+
+        $products = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        return view('product.search', compact('products', 'keyword'));
+    }
 }

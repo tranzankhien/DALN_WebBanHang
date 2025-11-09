@@ -53,6 +53,17 @@
             Quản lý Sản phẩm
         </a>
 
+        <a href="{{ route('admin.advertisments.index') }}" 
+           class="group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
+                  {{ request()->routeIs('admin.advertisments.*') 
+                     ? 'bg-gradient-to-r from-pink-600 to-pink-700 shadow-lg shadow-pink-500/50' 
+                     : 'hover:bg-gray-700 hover:shadow-md' }}">
+            <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h18M3 12h18M3 19h18" />
+            </svg>
+            Quản lý Quảng cáo
+        </a>
+
         <div class="pt-4 mt-4 border-t border-gray-700">
             <a href="{{ url('/') }}" 
                class="group flex items-center px-4 py-3 text-sm font-medium rounded-lg hover:bg-gray-700 transition-all duration-200 hover:shadow-md">
