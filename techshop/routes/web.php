@@ -69,3 +69,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 require __DIR__.'/auth.php';
+
+// Temporary debug route
+Route::post('/debug-form', function(\Illuminate\Http\Request $request) {
+    dd([
+        'all' => $request->all(),
+        'attributes' => $request->attributes,
+        'has_attributes' => $request->has('attributes'),
+        'is_array' => is_array($request->attributes),
+    ]);
+})->middleware(['auth', 'admin']);

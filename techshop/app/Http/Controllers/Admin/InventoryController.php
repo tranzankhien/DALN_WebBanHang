@@ -80,8 +80,11 @@ class InventoryController extends Controller
         $categoryAttributes = $category->productAttributes;
         
         if ($categoryAttributes->count() > 0) {
+            // ✅ Lấy attributes từ input (KHÔNG dùng $request->attributes vì đó là Symfony ParameterBag)
+            $attributesInput = $request->input('attributes', []);
+            
             // ✅ Danh mục CÓ thuộc tính → BẮT BUỘC phải điền
-            if (!$request->has('attributes') || !is_array($request->attributes)) {
+            if (empty($attributesInput) || !is_array($attributesInput)) {
                 return back()
                     ->withInput()
                     ->withErrors([
@@ -92,7 +95,8 @@ class InventoryController extends Controller
             $missingAttributes = [];
             
             foreach ($categoryAttributes as $attr) {
-                $attrValue = $request->input("attributes.{$attr->id}");
+                // ✅ Lấy giá trị từ input
+                $attrValue = $attributesInput[$attr->id] ?? null;
                 
                 if (empty($attrValue) || trim($attrValue) === '') {
                     $missingAttributes[] = $attr->name;
@@ -120,8 +124,9 @@ class InventoryController extends Controller
         ]);
 
         // ✅ LƯU TẤT CẢ THUỘC TÍNH (nếu có)
-        if ($request->has('attributes') && is_array($request->attributes)) {
-            foreach ($request->attributes as $attributeId => $value) {
+        $attributesInput = $request->input('attributes', []);
+        if (!empty($attributesInput) && is_array($attributesInput)) {
+            foreach ($attributesInput as $attributeId => $value) {
                 if (!empty(trim($value))) {  // ✅ Chỉ lưu nếu có giá trị
                     ProductAttributeValue::create([
                         'inventory_item_id' => $item->id,

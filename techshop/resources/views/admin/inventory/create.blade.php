@@ -155,6 +155,9 @@ function loadCategoryAttributes() {
             let html = '';
             attributes.forEach(attr => {
                 const fieldId = `attribute_${attr.id}`;
+                const oldValue = @json(old('attributes', []));
+                const value = oldValue[attr.id] || '';
+                
                 html += `
                     <div>
                         <label for="${fieldId}" class="block text-sm font-medium text-gray-700">
@@ -166,6 +169,7 @@ function loadCategoryAttributes() {
                             type="text" 
                             name="attributes[${attr.id}]" 
                             id="${fieldId}"
+                            value="${value}"
                             required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
                             placeholder="Nhập ${attr.name.toLowerCase()}...">
