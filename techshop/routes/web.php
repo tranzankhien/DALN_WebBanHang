@@ -77,14 +77,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 require __DIR__.'/auth.php';
 
-// Ensure a named 'home' route exists. Some environments/packages may register a
-// route for '/' without a name; we explicitly (re)declare the named route to
-// guarantee route('home') works across views and redirects.
-// If the route is already defined with name 'home', this will create a
-// duplicate route but the name will be available for URL generation.
-// Check router for an existing named 'home' route; if missing, (re)declare it.
-if (app('router')->getRoutes()->getByName('home') === null) {
-    \Illuminate\Support\Facades\Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-}
-
-
+// Temporary debug route
+Route::post('/debug-form', function(\Illuminate\Http\Request $request) {
+    dd([
+        'all' => $request->all(),
+        'attributes' => $request->attributes,
+        'has_attributes' => $request->has('attributes'),
+        'is_array' => is_array($request->attributes),
+    ]);
+})->middleware(['auth', 'admin']);
