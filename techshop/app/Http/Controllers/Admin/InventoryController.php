@@ -63,6 +63,7 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate basic fields first
         $validated = $request->validate([
             'sku' => 'required|unique:inventory_items,sku|max:50',
             'name' => 'required|max:150',
@@ -71,9 +72,43 @@ class InventoryController extends Controller
             'category_id' => 'required|exists:categories,id',
             'cost_price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'attributes' => 'nullable|array',
+            'attributes' => 'nullable|array', // ✅ Nullable nếu danh mục không có thuộc tính
         ]);
 
+        // ✅ KIỂM TRA TẤT CẢ THUỘC TÍNH BẮT BUỘC (nếu danh mục có)
+        $category = Category::with('productAttributes')->findOrFail($validated['category_id']);
+        $categoryAttributes = $category->productAttributes;
+        
+        if ($categoryAttributes->count() > 0) {
+            // ✅ Danh mục CÓ thuộc tính → BẮT BUỘC phải điền
+            if (!$request->has('attributes') || !is_array($request->attributes)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'attributes' => '⚠️ Danh mục này yêu cầu điền thuộc tính. Vui lòng chọn lại danh mục hoặc điền thuộc tính.'
+                    ]);
+            }
+            
+            $missingAttributes = [];
+            
+            foreach ($categoryAttributes as $attr) {
+                $attrValue = $request->input("attributes.{$attr->id}");
+                
+                if (empty($attrValue) || trim($attrValue) === '') {
+                    $missingAttributes[] = $attr->name;
+                }
+            }
+            
+            if (!empty($missingAttributes)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'attributes' => '⚠️ Vui lòng điền đầy đủ các thuộc tính bắt buộc: ' . implode(', ', $missingAttributes)
+                    ]);
+            }
+        }
+
+        // Create inventory item
         $item = InventoryItem::create([
             'sku' => $validated['sku'],
             'name' => $validated['name'],
@@ -84,21 +119,21 @@ class InventoryController extends Controller
             'stock_quantity' => $validated['stock_quantity'],
         ]);
 
-        // Save attributes if provided
+        // ✅ LƯU TẤT CẢ THUỘC TÍNH (nếu có)
         if ($request->has('attributes') && is_array($request->attributes)) {
             foreach ($request->attributes as $attributeId => $value) {
-                if (!empty($value)) {
+                if (!empty(trim($value))) {  // ✅ Chỉ lưu nếu có giá trị
                     ProductAttributeValue::create([
                         'inventory_item_id' => $item->id,
                         'attribute_id' => $attributeId,
-                        'value' => $value,
+                        'value' => trim($value),
                     ]);
                 }
             }
         }
 
         return redirect()->route('admin.inventory.index')
-            ->with('success', 'Sản phẩm đã được thêm vào kho thành công!');
+            ->with('success', '✅ Sản phẩm đã được thêm vào kho thành công!');
     }
 
     /**
@@ -131,6 +166,7 @@ class InventoryController extends Controller
     {
         $item = InventoryItem::findOrFail($id);
 
+        // Validate basic fields
         $validated = $request->validate([
             'sku' => 'required|max:50|unique:inventory_items,sku,' . $id,
             'name' => 'required|max:150',
@@ -139,8 +175,32 @@ class InventoryController extends Controller
             'category_id' => 'required|exists:categories,id',
             'cost_price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
-            'attributes' => 'nullable|array',
+            'attributes' => 'required|array', // ✅ BẮT BUỘC
         ]);
+
+        // ✅ KIỂM TRA THUỘC TÍNH BẮT BUỘC
+        $category = Category::with('productAttributes')->findOrFail($validated['category_id']);
+        $categoryAttributes = $category->productAttributes;
+        
+        if ($categoryAttributes->count() > 0) {
+            $missingAttributes = [];
+            
+            foreach ($categoryAttributes as $attr) {
+                $attrValue = $request->input("attributes.{$attr->id}");
+                
+                if (empty($attrValue) || trim($attrValue) === '') {
+                    $missingAttributes[] = $attr->name;
+                }
+            }
+            
+            if (!empty($missingAttributes)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'attributes' => '⚠️ Vui lòng điền đầy đủ các thuộc tính: ' . implode(', ', $missingAttributes)
+                    ]);
+            }
+        }
 
         $item->update([
             'sku' => $validated['sku'],
@@ -152,25 +212,23 @@ class InventoryController extends Controller
             'stock_quantity' => $validated['stock_quantity'],
         ]);
 
-        // Update attributes
+        // ✅ CẬP NHẬT TẤT CẢ THUỘC TÍNH
         if ($request->has('attributes') && is_array($request->attributes)) {
             // Delete old attributes
             ProductAttributeValue::where('inventory_item_id', $item->id)->delete();
             
-            // Create new attributes
+            // Create new attributes (tất cả đều bắt buộc có giá trị)
             foreach ($request->attributes as $attributeId => $value) {
-                if (!empty($value)) {
-                    ProductAttributeValue::create([
-                        'inventory_item_id' => $item->id,
-                        'attribute_id' => $attributeId,
-                        'value' => $value,
-                    ]);
-                }
+                ProductAttributeValue::create([
+                    'inventory_item_id' => $item->id,
+                    'attribute_id' => $attributeId,
+                    'value' => trim($value),
+                ]);
             }
         }
 
         return redirect()->route('admin.inventory.show', $item->id)
-            ->with('success', 'Sản phẩm đã được cập nhật thành công!');
+            ->with('success', '✅ Sản phẩm đã được cập nhật thành công!');
     }
 
     /**

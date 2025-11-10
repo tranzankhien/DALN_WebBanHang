@@ -66,7 +66,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                     </svg>
                     Thông tin chi tiết sản phẩm
+                    <span class="ml-2 text-sm text-red-600 font-normal">(Bắt buộc)</span>
                 </h3>
+                @error('attributes')
+                    <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-red-700 font-medium">{{ $message }}</p>
+                        </div>
+                    </div>
+                @enderror
                 <div id="attributes-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Dynamic fields will be loaded here -->
                 </div>
@@ -140,19 +151,22 @@ function loadCategoryAttributes() {
                 return;
             }
             
-            // Build attribute fields
+            // Build attribute fields với required
             let html = '';
             attributes.forEach(attr => {
                 const fieldId = `attribute_${attr.id}`;
                 html += `
                     <div>
                         <label for="${fieldId}" class="block text-sm font-medium text-gray-700">
-                            ${attr.name} ${attr.unit ? `<span class="text-gray-500 text-xs">(${attr.unit})</span>` : ''}
+                            ${attr.name}
+                            <span class="text-red-500">*</span>
+                            ${attr.unit ? `<span class="text-gray-500 text-xs">(${attr.unit})</span>` : ''}
                         </label>
                         <input 
                             type="text" 
                             name="attributes[${attr.id}]" 
                             id="${fieldId}"
+                            required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
                             placeholder="Nhập ${attr.name.toLowerCase()}...">
                     </div>
