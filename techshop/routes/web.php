@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController as PublicProductController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -19,6 +20,16 @@ Route::get('/product/{id}', [PublicProductController::class, 'productInformation
 
 // Public product search (full results page)
 Route::get('/products/search', [PublicProductController::class, 'search'])->name('products.search');
+
+// Shopping Cart Routes (accessible to everyone, session-based for guests)
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::patch('/{itemId}', [CartController::class, 'update'])->name('update');
+    Route::delete('/{itemId}', [CartController::class, 'remove'])->name('remove');
+    Route::delete('/', [CartController::class, 'clear'])->name('clear');
+    Route::get('/count', [CartController::class, 'count'])->name('count');
+});
 
 // Social Login Routes
 Route::get('/auth/{provider}/redirect', [ProviderController::class, 'redirect'])
