@@ -44,6 +44,12 @@ class CartController extends Controller
         
         // Check stock
         if ($product->stock < $request->quantity) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ Số lượng sản phẩm không đủ trong kho!'
+                ], 422);
+            }
             return back()->with('error', '⚠️ Số lượng sản phẩm không đủ trong kho!');
         }
 
@@ -57,6 +63,12 @@ class CartController extends Controller
             $newQuantity = $cartItem->quantity + $request->quantity;
             
             if ($newQuantity > $product->stock) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => '⚠️ Số lượng vượt quá tồn kho!'
+                    ], 422);
+                }
                 return back()->with('error', '⚠️ Số lượng vượt quá tồn kho!');
             }
             
@@ -68,6 +80,16 @@ class CartController extends Controller
                 'product_id' => $product->id,
                 'quantity' => $request->quantity,
                 'price' => $product->discount_price ?? $product->price,
+            ]);
+        }
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            $cartCount = $cart->items()->sum('quantity');
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Đã thêm sản phẩm vào giỏ hàng!',
+                'count' => $cartCount
             ]);
         }
 

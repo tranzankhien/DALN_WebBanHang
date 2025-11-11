@@ -37,13 +37,22 @@
                 <nav class="flex items-center space-x-4">
                     @auth
                     <!-- Cart -->
-                    <a href="#" class="p-2 text-gray-600 hover:text-blue-600 relative">
+                    <a href="{{ route('cart.index') }}" class="p-2 text-gray-600 hover:text-blue-600 relative group">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
+                        @php
+                            $cartCount = 0;
+                            if (Auth::check()) {
+                                $cart = \App\Models\Cart::where('user_id', Auth::id())->first();
+                                if ($cart) {
+                                    $cartCount = $cart->items()->sum('quantity');
+                                }
+                            }
+                        @endphp
                         <span
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center group-hover:bg-red-600 transition">{{ $cartCount }}</span>
                     </a>
 
                     <!-- User Dropdown -->
@@ -104,6 +113,24 @@
                         </div>
                     </div>
                     @else
+                    <!-- Cart for guests -->
+                    <a href="{{ route('cart.index') }}" class="p-2 text-gray-600 hover:text-blue-600 relative group">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        @php
+                            $guestCartCount = 0;
+                            $sessionId = session()->getId();
+                            $guestCart = \App\Models\Cart::where('session_id', $sessionId)->first();
+                            if ($guestCart) {
+                                $guestCartCount = $guestCart->items()->sum('quantity');
+                            }
+                        @endphp
+                        <span
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center group-hover:bg-red-600 transition">{{ $guestCartCount }}</span>
+                    </a>
+                    
                     <a href="{{ route('login') }}"
                         class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                         Đăng nhập
@@ -259,7 +286,7 @@
                     <div id="featured-track" class="flex gap-6 transition-transform duration-700"
                         style="will-change: transform;">
                         @foreach($featuredProducts as $product)
-                        <div class="flex-shrink-0" style="width: calc(100%/4);">
+                        <div class="flex-shrink-0" style="width: calc((100% - 72px) / 4);">
                             <div
                                 class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
                                 <!-- Product Image -->
@@ -324,6 +351,7 @@
                                         </div>
 
                                         <button
+                                            onclick="addToCart({{ $product->id }})"
                                             class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -347,11 +375,7 @@
             {{-- Auto-slide script for featured products --}}
             <script>
             (function() {
-                const total = {
-                    {
-                        $fpCount
-                    }
-                };
+                const total = {{ $fpCount }};
                 const visible = 4;
                 if (total <= visible) return; // no sliding needed
 
@@ -367,14 +391,12 @@
                 if (dotsContainer) {
                     for (let i = 0; i < pages; i++) {
                         const d = document.createElement('button');
-                        d.className = 'w-2 h-2 rounded-full bg-gray-300';
+                        d.className = 'w-2 h-2 rounded-full bg-gray-300 transition-all duration-300';
                         d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-                        d.onclick = (() => {
-                            return function() {
-                                goTo(i);
-                                resetTimer();
-                            };
-                        })();
+                        d.onclick = function() {
+                            goTo(i);
+                            resetTimer();
+                        };
                         dotsContainer.appendChild(d);
                     }
                 }
@@ -382,31 +404,26 @@
                 function updateDots() {
                     if (!dotsContainer) return;
                     Array.from(dotsContainer.children).forEach((btn, idx) => {
-                        btn.className = idx === current ? 'w-3 h-3 rounded-full bg-blue-600' :
-                            'w-2 h-2 rounded-full bg-gray-300';
+                        btn.className = idx === current ? 
+                            'w-3 h-3 rounded-full bg-blue-600 transition-all duration-300' :
+                            'w-2 h-2 rounded-full bg-gray-300 transition-all duration-300';
                     });
                 }
 
                 function goTo(page) {
                     current = page % pages;
                     const percent = (current * 100);
-                    // each page moves by 100% of viewport
                     track.style.transform = 'translateX(-' + percent + '%)';
                     updateDots();
                 }
 
-                // Because each item width is calc(100%/4), the full track width equals pages * 100%.
-                // Set track width accordingly to allow percent-based translate to work.
+                // Set track width to allow proper sliding
                 track.style.width = (pages * 100) + '%';
-                // also set each child (slide) width to (100 / (pages*4))% to maintain layout
-                Array.from(track.children).forEach(function(child) {
-                    child.style.width = (100 / (pages * 4)) + '%';
-                });
 
                 updateDots();
 
-                // auto slide every 17 seconds (between 15-20s as requested)
-                const intervalMs = 17000;
+                // auto slide every 5 seconds
+                const intervalMs = 5000;
                 let timer = setInterval(() => {
                     goTo((current + 1) % pages);
                 }, intervalMs);
@@ -419,10 +436,10 @@
                 }
 
                 // Pause on hover
-                viewport.addEventListener('mouseenter', () => clearInterval(timer));
-                viewport.addEventListener('mouseleave', () => {
-                    resetTimer();
-                });
+                if (viewport) {
+                    viewport.addEventListener('mouseenter', () => clearInterval(timer));
+                    viewport.addEventListener('mouseleave', () => resetTimer());
+                }
 
                 // Initialize position
                 goTo(0);
@@ -592,6 +609,89 @@
             </div>
         </div>
     </footer>
+
+    <!-- Add to Cart Script -->
+    <script>
+        function addToCart(productId) {
+            fetch('{{ route("cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success !== false) {
+                    // Update cart count
+                    updateCartCount();
+                    
+                    // Show success message
+                    showNotification('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                } else {
+                    showNotification(data.message || '⚠️ Có lỗi xảy ra!', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('⚠️ Có lỗi xảy ra!', 'error');
+            });
+        }
+
+        function updateCartCount() {
+            fetch('{{ route("cart.count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update all cart count badges
+                    document.querySelectorAll('a[href="{{ route("cart.index") }}"] span').forEach(badge => {
+                        badge.textContent = data.count;
+                    });
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white font-medium`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize notification styles
+        document.addEventListener('DOMContentLoaded', function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .fixed.top-20.right-4 {
+                    opacity: 0;
+                    transform: translateX(100px);
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+
     @livewireScripts
 </body>
 
