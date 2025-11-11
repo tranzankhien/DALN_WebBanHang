@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController as PublicProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -29,6 +30,14 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/{itemId}', [CartController::class, 'remove'])->name('remove');
     Route::delete('/', [CartController::class, 'clear'])->name('clear');
     Route::get('/count', [CartController::class, 'count'])->name('count');
+});
+
+// Checkout Routes (accessible to everyone, session-based for guests)
+Route::prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/', [CheckoutController::class, 'index'])->name('index');
+    Route::post('/review', [CheckoutController::class, 'review'])->name('review');
+    Route::post('/place-order', [CheckoutController::class, 'placeOrder'])->name('place-order');
+    Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
 // Social Login Routes

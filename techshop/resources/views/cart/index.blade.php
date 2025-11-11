@@ -339,9 +339,9 @@
                             class="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500">
                         <label for="select-all-bottom" class="ml-2 text-sm font-medium text-gray-700">Chọn Tất Cả</label>
                     </div>
-                    <button onclick="deleteSelected()" class="text-sm text-gray-600 hover:text-red-500 font-medium">
+                    <!-- <button onclick="deleteSelected()" class="text-sm text-gray-600 hover:text-red-500 font-medium">
                         Xóa
-                    </button>
+                    </button> -->
                 </div>
 
                 <!-- Right Side: Total & Checkout -->
@@ -524,8 +524,8 @@
                 return;
             }
             
-            // Proceed to checkout
-            alert('Chức năng thanh toán đang được phát triển!');
+            // Redirect to checkout page
+            window.location.href = '{{ route("checkout.index") }}';
         }
 
         // Initialize on page load

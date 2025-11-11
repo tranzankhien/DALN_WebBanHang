@@ -13,6 +13,10 @@ class Order extends Model
         'shipping_name',
         'shipping_phone',
         'shipping_address',
+        'shipping_city',
+        'shipping_district',
+        'shipping_ward',
+        'customer_note',
     ];
 
     protected $casts = [
