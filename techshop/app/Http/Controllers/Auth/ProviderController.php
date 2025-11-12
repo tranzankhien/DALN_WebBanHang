@@ -10,10 +10,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ProviderController extends Controller
 {
-    public function redirect($provider)
+   public function redirect(Request $request, string $provider)
     {
-        //return Socialite::driver($provider)->redirect();
-        $driver = Socialite::driver($provider);
+        if (! in_array($provider, ['google', 'facebook'], true)) {
+            abort(404);
+        }
+
+        // Use the current request host as callback to avoid domain mismatches (e.g. 127.0.0.1 vs localhost)
+        $callbackUrl = route('social.callback', ['provider' => $provider], true);
+        $driver = Socialite::driver($provider)->redirectUrl($callbackUrl);
+
         if ($provider === 'google') {
             // Build redirect URL and append prompt=select_account without relying on provider-specific methods
             $response = $driver->redirect();
