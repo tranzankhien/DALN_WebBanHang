@@ -55,4 +55,18 @@ class ProductController extends Controller
 
         return view('product.search', compact('products', 'keyword'));
     }
+
+    /**
+     * Outstanding / featured products page
+     */
+    public function outstanding(\Illuminate\Http\Request $request)
+    {
+        $products = Product::with(['images', 'inventoryItem'])
+            ->where('status', 'active')
+            ->where('is_featured', true)
+            ->orderBy('published_at', 'desc')
+            ->paginate(20);
+
+        return view('outstanding', compact('products'));
+    }
 }

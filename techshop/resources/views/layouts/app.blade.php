@@ -31,9 +31,60 @@
 
         <!-- Page Content -->
         <main>
-            {{ $slot }}
+            @hasSection('content')
+                @yield('content')
+            @else
+                {{ $slot ?? '' }}
+            @endif
         </main>
     </div>
+    <script>
+        // Ensure product images are fully visible (object-contain) and replace very tall images with a fallback icon.
+        (function () {
+            const FALLBACK = 'https://cdn-icons-png.flaticon.com/512/679/679720.png';
+            function handleImg(img) {
+                if (!img) return;
+                // Keep object-fit contain
+                img.style.objectFit = 'contain';
+
+                // If image fails to load, replace with fallback
+                img.addEventListener('error', function () {
+                    if (img.src !== FALLBACK) img.src = img.datasetFallback || FALLBACK;
+                });
+
+                // After load check aspect ratio; if very tall, swap to fallback
+                function onLoad() {
+                    try {
+                        const w = img.naturalWidth || img.width;
+                        const h = img.naturalHeight || img.height;
+                        if (w && h) {
+                            // if height is more than 2.5x width, consider it too tall
+                            if (h / w > 2.5) {
+                                const fb = img.datasetFallback || FALLBACK;
+                                if (img.src !== fb) img.src = fb;
+                            }
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+
+                if (img.complete) {
+                    onLoad();
+                } else {
+                    img.addEventListener('load', onLoad);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('img.product-auto-fit').forEach(function (img) {
+                    // expose dataFallback property for older browsers
+                    if (!img.datasetFallback) img.datasetFallback = img.getAttribute('data-fallback') || FALLBACK;
+                    handleImg(img);
+                });
+            });
+        })();
+    </script>
 </body>
 
 </html>

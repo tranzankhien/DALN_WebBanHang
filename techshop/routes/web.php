@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController as PublicProductController;
+use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
@@ -20,6 +21,12 @@ Route::get('/product/{id}', [PublicProductController::class, 'productInformation
 
 // Public product search (full results page)
 Route::get('/products/search', [PublicProductController::class, 'search'])->name('products.search');
+
+// Public category listing (show all products in a category)
+Route::get('/category/{id}', [PublicCategoryController::class, 'products'])->name('categoryProducts');
+
+// Outstanding / featured products page
+Route::get('/products/outstanding', [PublicProductController::class, 'outstanding'])->name('products.outstanding');
 
 // Cart
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
