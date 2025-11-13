@@ -17,42 +17,38 @@
     <!-- Header / Navigation -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex items-center h-16">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
-                    <a href="{{ route('home') }}"
-                        class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                        TechShop
-                    </a>
+                    <a href="{{ route('home') }}" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">TechShop</a>
                 </div>
 
-                <!-- Search Bar (Desktop) - styled like admin filters but single-field -->
-                <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-                    <div class="w-full bg-white shadow rounded-lg px-3 py-2">
-                        @livewire('product-search')
-                    </div>
+                <!-- Center search -->
+                <div class="flex-1 flex justify-center px-4">
+                    @livewire('product-search')
                 </div>
 
-                <!-- Navigation Links -->
+                <!-- Right icons / nav -->
                 <nav class="flex items-center space-x-4">
+                    <!-- Order history (moved into right group) -->
+                    <a href="#" class="flex items-center gap-2 text-gray-700 hover:text-blue-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" />
+                        </svg>
+                    </a>
                     @auth
-                    <!-- Cart -->
-                    <a href="{{ route('cart.index') }}" class="p-2 text-gray-600 hover:text-blue-600 relative group">
+                    @php
+                    $homeCartRelation = auth()->user()->cart;
+                    $homeCartCount = $homeCartRelation ? $homeCartRelation->items()->sum('quantity') : 0;
+                    @endphp
+                    <a href="{{ route('cart.index') }}" class="relative p-2 text-gray-600 hover:text-blue-600"
+                        aria-label="Giỏ hàng">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        @php
-                            $cartCount = 0;
-                            if (Auth::check()) {
-                                $cart = \App\Models\Cart::where('user_id', Auth::id())->first();
-                                if ($cart) {
-                                    $cartCount = $cart->items()->sum('quantity');
-                                }
-                            }
-                        @endphp
                         <span
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center group-hover:bg-red-600 transition">{{ $cartCount }}</span>
+                            class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">{{ $homeCartCount }}</span>
                     </a>
 
                     <!-- User Dropdown -->
@@ -113,24 +109,13 @@
                         </div>
                     </div>
                     @else
-                    <!-- Cart for guests -->
-                    <a href="{{ route('cart.index') }}" class="p-2 text-gray-600 hover:text-blue-600 relative group">
+                    <button type="button" class="relative p-2 text-gray-600 hover:text-blue-600"
+                        data-trigger-login-popup aria-label="Giỏ hàng">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        @php
-                            $guestCartCount = 0;
-                            $sessionId = session()->getId();
-                            $guestCart = \App\Models\Cart::where('session_id', $sessionId)->first();
-                            if ($guestCart) {
-                                $guestCartCount = $guestCart->items()->sum('quantity');
-                            }
-                        @endphp
-                        <span
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center group-hover:bg-red-600 transition">{{ $guestCartCount }}</span>
-                    </a>
-                    
+                    </button>
                     <a href="{{ route('login') }}"
                         class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                         Đăng nhập
@@ -144,6 +129,16 @@
             </div>
         </div>
     </header>
+    @include('components.pop-up.required_login-popup')
+    @if(session('forceLoginPopup'))
+    <script>
+    window.addEventListener('load', function() {
+        if (typeof window.showRequiredLoginPopup === 'function') {
+            window.showRequiredLoginPopup();
+        }
+    });
+    </script>
+    @endif
     <!-- Advertisements -->
 
     <div x-data="advertCarousel({{ $ads->toJson() }})" x-init="init()" class="w-[70%] mx-auto relative">
@@ -273,180 +268,65 @@
     </script>
 
     <!-- Featured Products -->
-    <section id="featured" class="py-16 bg-gray-50">
+    <section class="py-12 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-900">Sản phẩm nổi bật</h2>
-                <a href="#" class="text-blue-600 hover:text-blue-700 font-medium">Xem tất cả →</a>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Sản phẩm nổi bật</h2>
+                <a href="{{ route('products.outstanding') }}" class="text-blue-600 hover:text-blue-700 font-medium">Xem tất cả →</a>
             </div>
-            {{-- Slider: shows 4 at a time; if >4 it will auto-slide right->left every interval --}}
-            @php $fpCount = $featuredProducts->count(); @endphp
-            <div class="relative">
-                <div id="featured-viewport" class="overflow-hidden">
-                    <div id="featured-track" class="flex gap-6 transition-transform duration-700"
-                        style="will-change: transform;">
-                        @foreach($featuredProducts as $product)
-                        <div class="flex-shrink-0" style="width: calc((100% - 72px) / 4);">
-                            <div
-                                class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
-                                <!-- Product Image -->
-                                <div class="relative h-48 bg-gray-100 overflow-hidden">
-                                    @php
-                                    $mainImage = $product->images->where('is_main', true)->first() ??
-                                    $product->images->first();
-                                    @endphp
-                                    @if($mainImage)
-                                    <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
-                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                                    <!-- overlay link to product information -->
-                                    <a href="{{ route('productInformation', $product->id) }}" class="absolute inset-0"
-                                        aria-label="Xem {{ $product->name }}"></a>
-                                    @else
-                                    <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                        <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    @endif
 
-                                    <!-- Featured Badge -->
-                                    <div class="absolute top-2 right-2">
-                                        <span
-                                            class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center">
-                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            HOT
-                                        </span>
-                                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 grid-rows-4 md:grid-rows-2 gap-6">
+                @foreach($featuredProducts->take(8) as $product)
+                @php
+                    $mainImage = $product->images->where('is_main', true)->first() ?? $product->images->first();
+                @endphp
 
-                                </div>
-
-                                <!-- Product Info -->
-                                <div class="p-4">
-                                    <p class="text-xs text-gray-500 mb-1">{{ $product->inventoryItem->category->name }}
-                                    </p>
-                                    <h3
-                                        class="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight h-10 group-hover:text-blue-600 transition">
-                                        <a href="{{ route('productInformation', $product->id) }}"
-                                            class="inline-block">{{ $product->name }}</a>
-                                    </h3>
-
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            @if($product->discount_price)
-                                            <p class="text-lg font-bold text-red-600">
-                                                {{ number_format($product->discount_price) }}đ
-                                            </p>
-                                            <p class="text-sm text-gray-400 line-through">
-                                                {{ number_format($product->price) }}đ
-                                            </p>
-                                            @else
-                                            <p class="text-lg font-bold text-gray-900">
-                                                {{ number_format($product->price) }}đ
-                                            </p>
-                                            @endif
-                                        </div>
-
-                                        <button
-                                            onclick="addToCart({{ $product->id }})"
-                                            class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-72">
+                    <!-- image block -->
+                    <div class="h-40 bg-gray-50 flex items-center justify-center p-4">
+                        @if($mainImage)
+                        <a href="{{ route('productInformation', $product->id) }}" class="block w-full h-full flex items-center justify-center">
+                            <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
+                                class="max-h-full max-w-full object-contain" data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png" onerror="this.src=this.dataset.fallback">
+                        </a>
+                        @else
+                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                            <img src="https://cdn-icons-png.flaticon.com/512/679/679720.png" class="max-h-full max-w-full" alt="no image">
                         </div>
-                        @endforeach
+                        @endif
+                    </div>
+
+                    <!-- content -->
+                    <div class="p-4 flex-1 flex flex-col">
+                        <p class="text-xs text-gray-500 mb-1">{{ optional($product->inventoryItem->category)->name }}</p>
+                        <h3 class="text-sm font-semibold text-gray-900 leading-tight line-clamp-2 mb-2">
+                            <a href="{{ route('productInformation', $product->id) }}">{{ $product->name }}</a>
+                        </h3>
+
+                        <div class="mt-auto flex items-center justify-between">
+                            <div>
+                                @if($product->discount_price)
+                                <div class="text-red-600 font-bold">{{ number_format($product->discount_price) }}đ</div>
+                                <div class="text-gray-400 text-xs line-through">{{ number_format($product->price) }}đ</div>
+                                @else
+                                <div class="text-gray-900 font-bold">{{ number_format($product->price) }}đ</div>
+                                @endif
+                            </div>
+
+                            <a href="{{ route('cart.add', $product->id) ?? '#' }}" class="inline-flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                {{-- Optional navigation dots (hidden by default) --}}
-                @if($fpCount > 4)
-                <div id="featured-dots" class="mt-4 flex items-center justify-center space-x-2"></div>
-                @endif
+                @endforeach
             </div>
-
-            {{-- Auto-slide script for featured products --}}
-            <script>
-            (function() {
-                const total = {{ $fpCount }};
-                const visible = 4;
-                if (total <= visible) return; // no sliding needed
-
-                const viewport = document.getElementById('featured-viewport');
-                const track = document.getElementById('featured-track');
-                const dotsContainer = document.getElementById('featured-dots');
-
-                // compute pages
-                const pages = Math.ceil(total / visible);
-                let current = 0;
-
-                // create dots
-                if (dotsContainer) {
-                    for (let i = 0; i < pages; i++) {
-                        const d = document.createElement('button');
-                        d.className = 'w-2 h-2 rounded-full bg-gray-300 transition-all duration-300';
-                        d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-                        d.onclick = function() {
-                            goTo(i);
-                            resetTimer();
-                        };
-                        dotsContainer.appendChild(d);
-                    }
-                }
-
-                function updateDots() {
-                    if (!dotsContainer) return;
-                    Array.from(dotsContainer.children).forEach((btn, idx) => {
-                        btn.className = idx === current ? 
-                            'w-3 h-3 rounded-full bg-blue-600 transition-all duration-300' :
-                            'w-2 h-2 rounded-full bg-gray-300 transition-all duration-300';
-                    });
-                }
-
-                function goTo(page) {
-                    current = page % pages;
-                    const percent = (current * 100);
-                    track.style.transform = 'translateX(-' + percent + '%)';
-                    updateDots();
-                }
-
-                // Set track width to allow proper sliding
-                track.style.width = (pages * 100) + '%';
-
-                updateDots();
-
-                // auto slide every 5 seconds
-                const intervalMs = 5000;
-                let timer = setInterval(() => {
-                    goTo((current + 1) % pages);
-                }, intervalMs);
-
-                function resetTimer() {
-                    clearInterval(timer);
-                    timer = setInterval(() => {
-                        goTo((current + 1) % pages);
-                    }, intervalMs);
-                }
-
-                // Pause on hover
-                if (viewport) {
-                    viewport.addEventListener('mouseenter', () => clearInterval(timer));
-                    viewport.addEventListener('mouseleave', () => resetTimer());
-                }
-
-                // Initialize position
-                goTo(0);
-            })();
-            </script>
         </div>
     </section>
+
 
     <!-- Show Products per Category -->
     <section class="py-16 bg-white">
@@ -469,7 +349,7 @@
                     </div>
 
                     <!-- Link xem tất cả -->
-                    <a href="{{ route('home', ['category' => $cat->id]) }}"
+                    <a href="{{ route('categoryProducts', $cat->id) }}"
                         class="text-blue-600 hover:text-blue-700 font-medium flex items-center">
                         Xem tất cả →
                     </a>
@@ -487,10 +367,14 @@
                             @endphp
 
                             @if($mainImage)
-                            <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
-                                class="w-full h-48 object-cover">
-                            <a href="{{ route('productInformation', $product->id) }}" class="absolute inset-0"
-                                aria-label="Xem {{ $product->name }}"></a>
+                            <div
+                                class="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+                                <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
+                                    class="product-auto-fit max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
+                                    data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png" />
+                                <a href="{{ route('productInformation', $product->id) }}" class="absolute inset-0"
+                                    aria-label="Xem {{ $product->name }}"></a>
+                            </div>
                             @else
                             <div class="w-full h-48 flex items-center justify-center bg-gray-100 text-gray-400">
                                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -499,6 +383,7 @@
                                 </svg>
                             </div>
                             @endif
+
 
                             <!-- Badge giảm giá -->
                             @if($product->discount_price)
@@ -609,89 +494,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Add to Cart Script -->
-    <script>
-        function addToCart(productId) {
-            fetch('{{ route("cart.add") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: 1
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success !== false) {
-                    // Update cart count
-                    updateCartCount();
-                    
-                    // Show success message
-                    showNotification('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-                } else {
-                    showNotification(data.message || '⚠️ Có lỗi xảy ra!', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('⚠️ Có lỗi xảy ra!', 'error');
-            });
-        }
-
-        function updateCartCount() {
-            fetch('{{ route("cart.count") }}')
-                .then(response => response.json())
-                .then(data => {
-                    // Update all cart count badges
-                    document.querySelectorAll('a[href="{{ route("cart.index") }}"] span').forEach(badge => {
-                        badge.textContent = data.count;
-                    });
-                })
-                .catch(error => console.error('Error updating cart count:', error));
-        }
-
-        function showNotification(message, type) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
-                type === 'success' ? 'bg-green-500' : 'bg-red-500'
-            } text-white font-medium`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateX(0)';
-            }, 10);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100px)';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // Initialize notification styles
-        document.addEventListener('DOMContentLoaded', function() {
-            const style = document.createElement('style');
-            style.textContent = `
-                .fixed.top-20.right-4 {
-                    opacity: 0;
-                    transform: translateX(100px);
-                }
-            `;
-            document.head.appendChild(style);
-        });
-    </script>
-
     @livewireScripts
 </body>
 

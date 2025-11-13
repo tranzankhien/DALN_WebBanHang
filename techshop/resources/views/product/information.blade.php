@@ -22,33 +22,31 @@
                 </div>
 
                 <!-- Search Bar (Desktop) -->
-                <div class="hidden md:flex flex-1 max-w-2xl mx-8">
-                    <form class="w-full">
-                        <div class="relative">
-                            <input type="text" placeholder="Tìm kiếm sản phẩm..."
-                                class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <button type="submit"
-                                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                 @livewire('product-search')
+                
+                <!-- Order history -->
+                <a href="#" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 mr-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                             d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" />
+                    </svg>
+                </a>
 
                 <!-- Navigation Links -->
                 <nav class="flex items-center space-x-4">
                     @auth
-                    <!-- Cart -->
-                    <a href="{{ route('cart.index') }}" class="p-2 text-gray-600 hover:text-blue-600 relative">
+                    @php
+                    $productCartRelation = auth()->user()->cart;
+                    $productCartCount = $productCartRelation ? $productCartRelation->items()->sum('quantity') : 0;
+                    @endphp
+                    <a href="{{ route('cart.index') }}" class="relative p-2 text-gray-600 hover:text-blue-600" aria-label="Giỏ hàng">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span id="cart-count"
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                        <span
+                            class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">{{ $productCartCount }}</span>
                     </a>
 
                     <!-- User Dropdown -->
@@ -109,6 +107,12 @@
                         </div>
                     </div>
                     @else
+                    <button type="button" class="relative p-2 text-gray-600 hover:text-blue-600" data-trigger-login-popup aria-label="Giỏ hàng">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </button>
                     <a href="{{ route('login') }}"
                         class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                         Đăng nhập
@@ -122,6 +126,16 @@
             </div>
         </div>
     </header>
+    @include('components.pop-up.required_login-popup')
+    @if(session('forceLoginPopup'))
+    <script>
+        window.addEventListener('load', function () {
+            if (typeof window.showRequiredLoginPopup === 'function') {
+                window.showRequiredLoginPopup();
+            }
+        });
+    </script>
+    @endif
 
     <!-- Breadcrumb -->
     <div class="bg-white border-b">
@@ -131,7 +145,16 @@
                 <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
-                <span class="text-gray-400">{{ optional($product->inventoryItem->category)->name ?? 'Sản phẩm' }}</span>
+                @php $cat = optional($product->inventoryItem)->category; @endphp
+                @if($cat && $cat->id)
+                    <a href="{{ route('categoryProducts', $cat->id) }}" class="hover:text-blue-600">{{ $cat->name }}</a>
+                @else
+                    <span class="text-gray-600">{{ optional($product->inventoryItem->category)->name ?? 'Sản phẩm' }}</span>
+                @endif
+                 <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-400">{{ $product->name }}</span>
             </div>
         </div>
     </div>
@@ -329,18 +352,29 @@
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
-                    <form method="POST" action="/cart/add" class="flex-1">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <input type="hidden" name="quantity" id="cart-quantity" value="1">
-                        <button type="submit" @if($product->stock <= 0) disabled @endif
-                                class="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    @auth
+                        <form method="POST" action="{{ route('cart.add') }}" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" id="cart-quantity" value="1">
+                            <button type="submit" @if($product->stock <= 0) disabled @endif
+                                    class="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 font-bold text-white shadow-lg transition-all hover:from-blue-600 hover:to-blue-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                Thêm vào giỏ hàng
+                            </button>
+                        </form>
+                    @else
+                        <input type="hidden" id="cart-quantity" value="1">
+                        <button type="button" data-trigger-login-popup @if($product->stock <= 0) disabled @endif
+                                class="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 font-bold text-white shadow-lg transition-all hover:from-blue-600 hover:to-blue-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
                             Thêm vào giỏ hàng
                         </button>
-                    </form>
+                    @endauth
 
                     <form method="POST" action="/orders/create" class="flex-1">
                         @csrf
@@ -553,26 +587,6 @@
     </footer>
 
     <script>
-        // Load cart count on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCartCount();
-        });
-
-        function updateCartCount() {
-            fetch('{{ route("cart.count") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const badge = document.getElementById('cart-count');
-                    if (badge) {
-                        badge.textContent = data.count;
-                        if (data.count > 0) {
-                            badge.classList.remove('hidden');
-                        }
-                    }
-                })
-                .catch(error => console.error('Error loading cart count:', error));
-        }
-
         // Image Gallery Navigation
         const images = @json($imageArray ?? []);
         let currentIndex = {{ $mainImageIndex ?? 0 }};
@@ -628,8 +642,14 @@
 
         function updateHiddenQuantities() {
             const qty = document.getElementById('quantity').value;
-            document.getElementById('cart-quantity').value = qty;
-            document.getElementById('order-quantity').value = qty;
+            const cartInput = document.getElementById('cart-quantity');
+            if (cartInput) {
+                cartInput.value = qty;
+            }
+            const orderInput = document.getElementById('order-quantity');
+            if (orderInput) {
+                orderInput.value = qty;
+            }
         }
 
         // Update hidden inputs when quantity changes manually

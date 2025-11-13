@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Auth\ProviderController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PublicCategoryController;
 
 // Homepage - accessible by everyone
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -107,3 +108,10 @@ Route::post('/debug-form', function(\Illuminate\Http\Request $request) {
         'is_array' => is_array($request->attributes),
     ]);
 })->middleware(['auth', 'admin']);
+
+// Show list products in a catelory
+Route::get('/category/{id}', [PublicCategoryController::class, 'products'])->name('categoryProducts');
+
+// Show list products in outstanding
+Route::get('/products/outstanding', [PublicProductController::class, 'outstanding'])->name('products.outstanding');
+

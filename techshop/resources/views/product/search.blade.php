@@ -3,11 +3,22 @@
 @section('title', 'Kết quả tìm kiếm')
 
 @section('content')
+<div class="bg-white border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex items-center text-sm text-gray-600">
+                <a href="{{ route('home') }}" class="hover:text-blue-600">Trang chủ</a>
+                <svg class="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="text-gray-400">{{ $keyword }}</span>
+            </div>
+        </div>
+    </div>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
         <h1 class="text-2xl font-bold">Kết quả tìm kiếm</h1>
         @if(!empty($keyword))
-        <p class="text-sm text-gray-600">Từ khóa: <strong>{{ $keyword }}</strong></p>
+        <p class="text-sm text-gray-600">Từ khóa: <strong class="text-red-600"><em>{{ $keyword }} </em></strong></p>
         @endif
     </div>
 
