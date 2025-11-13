@@ -22,22 +22,23 @@ Route::get('/product/{id}', [PublicProductController::class, 'productInformation
 // Public product search (full results page)
 Route::get('/products/search', [PublicProductController::class, 'search'])->name('products.search');
 
-// Shopping Cart Routes (accessible to everyone, session-based for guests)
-Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add', [CartController::class, 'add'])->name('add');
-    Route::patch('/{itemId}', [CartController::class, 'update'])->name('update');
-    Route::delete('/{itemId}', [CartController::class, 'remove'])->name('remove');
-    Route::delete('/', [CartController::class, 'clear'])->name('clear');
-    Route::get('/count', [CartController::class, 'count'])->name('count');
-});
+// Shopping Cart & Checkout Routes (require authentication)
+Route::middleware('auth')->group(function () {
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/add', [CartController::class, 'add'])->name('add');
+        Route::patch('/{itemId}', [CartController::class, 'update'])->name('update');
+        Route::delete('/{itemId}', [CartController::class, 'remove'])->name('remove');
+        Route::delete('/', [CartController::class, 'clear'])->name('clear');
+        Route::get('/count', [CartController::class, 'count'])->name('count');
+    });
 
-// Checkout Routes (accessible to everyone, session-based for guests)
-Route::prefix('checkout')->name('checkout.')->group(function () {
-    Route::get('/', [CheckoutController::class, 'index'])->name('index');
-    Route::post('/review', [CheckoutController::class, 'review'])->name('review');
-    Route::post('/place-order', [CheckoutController::class, 'placeOrder'])->name('place-order');
-    Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+    Route::prefix('checkout')->name('checkout.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/review', [CheckoutController::class, 'review'])->name('review');
+        Route::post('/place-order', [CheckoutController::class, 'placeOrder'])->name('place-order');
+        Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+    });
 });
 
 // Social Login Routes

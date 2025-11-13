@@ -165,20 +165,14 @@ class CartController extends Controller
      */
     private function getOrCreateCart()
     {
-        if (Auth::check()) {
-            // For authenticated users
-            return Cart::firstOrCreate(
-                ['user_id' => Auth::id()],
-                ['session_id' => null]
-            );
-        } else {
-            // For guest users (session-based)
-            $sessionId = session()->getId();
-            return Cart::firstOrCreate(
-                ['session_id' => $sessionId],
-                ['user_id' => null]
-            );
+        if (!Auth::check()) {
+            abort(401, 'Vui lòng đăng nhập để sử dụng giỏ hàng.');
         }
+
+        return Cart::firstOrCreate(
+            ['user_id' => Auth::id()],
+            ['session_id' => null]
+        );
     }
 
     /**
@@ -186,6 +180,10 @@ class CartController extends Controller
      */
     public function count()
     {
+        if (!Auth::check()) {
+            return response()->json(['count' => 0]);
+        }
+
         $cart = $this->getOrCreateCart();
         $count = $cart->items()->sum('quantity');
         
