@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController as PublicProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -39,6 +40,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/review', [CheckoutController::class, 'review'])->name('review');
         Route::post('/place-order', [CheckoutController::class, 'placeOrder'])->name('place-order');
         Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+    });
+
+    // Order History Routes
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{id}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     });
 });
 

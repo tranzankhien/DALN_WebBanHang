@@ -13,18 +13,19 @@
             <!-- Search Bar (Desktop) -->
             @livewire('product-search')
 
-            <!-- Order history -->
-                <a href="#" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 mr-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                             d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" />
-                    </svg>
-                </a>
-            
             <!-- Navigation Links / Auth -->
             <nav class="flex items-center space-x-4">
                 @auth
+                <!-- Order History -->
+                <a href="{{ route('orders.index') }}" class="p-2 text-gray-700 hover:text-blue-600" aria-label="Lịch sử đơn hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </a>
+                
+                <!-- Cart with count -->
                 @php
                 $cartRelation = auth()->user()->cart;
                 $cartItemCount = $cartRelation ? $cartRelation->items()->sum('quantity') : 0;
@@ -85,7 +86,7 @@
                             Tài khoản
                         </a>
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
-                            Đơn hàng
+                            Cài đặt
                         </a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -97,6 +98,16 @@
                     </div>
                 </div>
                 @else
+                <!-- Order History (requires login) -->
+                <button type="button" class="p-2 text-gray-700 hover:text-blue-600" data-trigger-login-popup aria-label="Lịch sử đơn hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </button>
+                
+                <!-- Cart (requires login) -->
                 <button type="button" class="relative p-2 text-gray-600 hover:text-blue-600" data-trigger-login-popup
                     aria-label="Giỏ hàng">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,6 +115,7 @@
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </button>
+                
                 <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                     Đăng nhập
                 </a>
@@ -151,13 +163,3 @@
 </header>
 
 @include('components.pop-up.required_login-popup')
-
-@if(session('forceLoginPopup'))
-<script>
-window.addEventListener('load', function() {
-    if (typeof window.showRequiredLoginPopup === 'function') {
-        window.showRequiredLoginPopup();
-    }
-});
-</script>
-@endif
