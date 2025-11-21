@@ -37,6 +37,25 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recent_orders', 'low_stock_items'));
+        // Chart Data: Revenue last 7 days
+        $revenue_data = [];
+        $revenue_labels = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $revenue_labels[] = $date->format('d/m');
+            $revenue_data[] = Order::whereDate('created_at', $date)
+                ->where('status', 'completed')
+                ->sum('total_amount');
+        }
+
+        // Chart Data: Order Status
+        $order_status_counts = [
+            Order::where('status', 'completed')->count(),
+            Order::where('status', 'pending')->count(),
+            Order::where('status', 'cancelled')->count(),
+            Order::where('status', 'shipped')->count(),
+        ];
+
+        return view('admin.dashboard', compact('stats', 'recent_orders', 'low_stock_items', 'revenue_data', 'revenue_labels', 'order_status_counts'));
     }
 }

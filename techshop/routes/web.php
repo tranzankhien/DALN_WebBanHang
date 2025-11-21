@@ -103,6 +103,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Advertisment Management (Quản lý quảng cáo)
     Route::resource('advertisments', App\Http\Controllers\Admin\AdvertismentController::class)->except(['show']);
 
+    // Order Management (Quản lý đơn hàng)
+    Route::get('orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
+    Route::patch('orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
+
 });
 
 require __DIR__.'/auth.php';
