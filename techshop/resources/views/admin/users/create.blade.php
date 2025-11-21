@@ -9,9 +9,20 @@
 </div>
 
 <div class="bg-white shadow rounded-lg p-6">
-    <form action="{{ route('admin.users.store') }}" method="POST">
+    <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="grid grid-cols-1 gap-6 max-w-2xl">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
+                <input type="file" name="avatar" accept="image/*"
+                    class="mt-1 block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100">
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tên</label>
                 <input type="text" name="name" value="{{ old('name') }}" required

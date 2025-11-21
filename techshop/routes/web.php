@@ -108,6 +108,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
 
+    // User Management (Quản lý người dùng)
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
 
 require __DIR__.'/auth.php';

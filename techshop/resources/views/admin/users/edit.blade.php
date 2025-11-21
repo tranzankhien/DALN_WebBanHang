@@ -9,10 +9,30 @@
 </div>
 
 <div class="bg-white shadow rounded-lg p-6">
-    <form action="{{ route('admin.users.update', $user) }}" method="POST">
+    <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="grid grid-cols-1 gap-6 max-w-2xl">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
+                <div class="flex items-center mt-2 space-x-4">
+                    @if($user->avatar)
+                        <img src="{{ $user->avatar }}" alt="Avatar" class="h-12 w-12 rounded-full object-cover">
+                    @else
+                        <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                    @endif
+                    <input type="file" name="avatar" accept="image/*"
+                        class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tên</label>
                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
