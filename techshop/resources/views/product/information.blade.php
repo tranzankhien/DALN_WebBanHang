@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $product->name }} — TechShop</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -249,7 +251,7 @@
                         </button>
                     @endauth
 
-                    <form method="POST" action="/orders/create" class="flex-1">
+                    <form method="POST" action="{{ route('cart.buy-now') }}" class="flex-1">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" name="quantity" id="order-quantity" value="1">

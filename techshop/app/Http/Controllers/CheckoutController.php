@@ -18,17 +18,43 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        $cart = $this->getCart();
-        
-        if (!$cart || $cart->items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
-        }
+        // Check if this is a "Buy Now" checkout
+        if (session()->has('buy_now')) {
+            $buyNowData = session('buy_now');
+            $product = Product::with('images')->findOrFail($buyNowData['product_id']);
+            
+            // Check stock again
+            if ($product->stock < $buyNowData['quantity']) {
+                session()->forget('buy_now');
+                return redirect()->back()->with('error', '⚠️ Sản phẩm không đủ hàng trong kho!');
+            }
+            
+            // Create a temporary cart item structure for the view
+            $cartItems = collect([
+                (object)[
+                    'id' => 'buy_now',
+                    'product' => $product,
+                    'quantity' => $buyNowData['quantity'],
+                    'price' => $buyNowData['price'],
+                ]
+            ]);
+            
+            $isBuyNow = true;
+        } else {
+            // Regular cart checkout
+            $cart = $this->getCart();
+            
+            if (!$cart || $cart->items->isEmpty()) {
+                return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
+            }
 
-        $cartItems = $cart->items()->with(['product.images'])->get();
+            $cartItems = $cart->items()->with(['product.images'])->get();
+            $isBuyNow = false;
+        }
         
         // Calculate totals
         $subtotal = $cartItems->sum(function($item) {
-            $price = $item->product->discount_price ?? $item->product->price;
+            $price = $item->price ?? ($item->product->discount_price ?? $item->product->price);
             return $price * $item->quantity;
         });
         
@@ -41,7 +67,7 @@ class CheckoutController extends Controller
             $defaultAddress = Auth::user()->addresses()->where('is_default', true)->first();
         }
 
-        return view('checkout.index', compact('cartItems', 'subtotal', 'shippingFee', 'total', 'defaultAddress'));
+        return view('checkout.index', compact('cartItems', 'subtotal', 'shippingFee', 'total', 'defaultAddress', 'isBuyNow'));
     }
 
     /**
@@ -60,17 +86,43 @@ class CheckoutController extends Controller
             'payment_method' => 'required|in:cod,bank_transfer',
         ]);
 
-        $cart = $this->getCart();
-        
-        if (!$cart || $cart->items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
-        }
+        // Check if this is a "Buy Now" checkout
+        if (session()->has('buy_now')) {
+            $buyNowData = session('buy_now');
+            $product = Product::with('images')->findOrFail($buyNowData['product_id']);
+            
+            // Check stock again
+            if ($product->stock < $buyNowData['quantity']) {
+                session()->forget('buy_now');
+                return redirect()->route('home')->with('error', '⚠️ Sản phẩm không đủ hàng trong kho!');
+            }
+            
+            // Create a temporary cart item structure for the view
+            $cartItems = collect([
+                (object)[
+                    'id' => 'buy_now',
+                    'product' => $product,
+                    'quantity' => $buyNowData['quantity'],
+                    'price' => $buyNowData['price'],
+                ]
+            ]);
+            
+            $isBuyNow = true;
+        } else {
+            // Regular cart checkout
+            $cart = $this->getCart();
+            
+            if (!$cart || $cart->items->isEmpty()) {
+                return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
+            }
 
-        $cartItems = $cart->items()->with(['product.images'])->get();
+            $cartItems = $cart->items()->with(['product.images'])->get();
+            $isBuyNow = false;
+        }
         
         // Calculate totals
         $subtotal = $cartItems->sum(function($item) {
-            $price = $item->product->discount_price ?? $item->product->price;
+            $price = $item->price ?? ($item->product->discount_price ?? $item->product->price);
             return $price * $item->quantity;
         });
         
@@ -80,7 +132,7 @@ class CheckoutController extends Controller
         // Store in session temporarily
         session(['checkout_data' => $validated]);
 
-        return view('checkout.review', compact('cartItems', 'subtotal', 'shippingFee', 'total', 'validated'));
+        return view('checkout.review', compact('cartItems', 'subtotal', 'shippingFee', 'total', 'validated', 'isBuyNow'));
     }
 
     /**
@@ -95,27 +147,52 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.index')->with('error', '⚠️ Vui lòng nhập thông tin giao hàng!');
         }
 
-        $cart = $this->getCart();
-        
-        if (!$cart || $cart->items->isEmpty()) {
-            return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
-        }
-
         DB::beginTransaction();
         
         try {
-            $cartItems = $cart->items()->with('product')->get();
-            
-            // Verify stock availability
-            foreach ($cartItems as $item) {
-                if ($item->product->stock < $item->quantity) {
-                    throw new \Exception("Sản phẩm '{$item->product->name}' không đủ hàng trong kho!");
+            // Check if this is a "Buy Now" order
+            if (session()->has('buy_now')) {
+                $buyNowData = session('buy_now');
+                $product = Product::findOrFail($buyNowData['product_id']);
+                
+                // Verify stock
+                if ($product->stock < $buyNowData['quantity']) {
+                    throw new \Exception("Sản phẩm '{$product->name}' không đủ hàng trong kho!");
+                }
+                
+                // Create items collection for buy now
+                $cartItems = collect([
+                    (object)[
+                        'product' => $product,
+                        'product_id' => $product->id,
+                        'quantity' => $buyNowData['quantity'],
+                        'price' => $buyNowData['price'],
+                    ]
+                ]);
+                
+                $isBuyNow = true;
+            } else {
+                // Regular cart checkout
+                $cart = $this->getCart();
+                
+                if (!$cart || $cart->items->isEmpty()) {
+                    return redirect()->route('cart.index')->with('error', '⚠️ Giỏ hàng của bạn đang trống!');
+                }
+                
+                $cartItems = $cart->items()->with('product')->get();
+                $isBuyNow = false;
+                
+                // Verify stock availability for all items
+                foreach ($cartItems as $item) {
+                    if ($item->product->stock < $item->quantity) {
+                        throw new \Exception("Sản phẩm '{$item->product->name}' không đủ hàng trong kho!");
+                    }
                 }
             }
             
             // Calculate total
             $subtotal = $cartItems->sum(function($item) {
-                $price = $item->product->discount_price ?? $item->product->price;
+                $price = $item->price ?? ($item->product->discount_price ?? $item->product->price);
                 return $price * $item->quantity;
             });
             
@@ -138,12 +215,12 @@ class CheckoutController extends Controller
 
             // Create order items and reduce stock
             foreach ($cartItems as $item) {
-                $price = $item->product->discount_price ?? $item->product->price;
+                $price = $item->price ?? ($item->product->discount_price ?? $item->product->price);
                 
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
-                    'inventory_item_id' => $item->product->inventory_item_id,
+                    'inventory_item_id' => $item->product->inventory_item_id ?? null,
                     'quantity' => $item->quantity,
                     'price' => $price,
                 ]);
@@ -161,8 +238,12 @@ class CheckoutController extends Controller
                 'transaction_id' => null,
             ]);
 
-            // Clear cart
-            $cart->items()->delete();
+            // Clear cart or buy now session
+            if ($isBuyNow) {
+                session()->forget('buy_now');
+            } else {
+                $cart->items()->delete();
+            }
 
             // Clear checkout session data
             session()->forget('checkout_data');

@@ -1,33 +1,43 @@
 <!-- Unified header/navigation to match home.blade.php -->
-<header class="bg-white shadow-md sticky top-0 z-50" x-data="{ open: false }">
+<header class="bg-white shadow-md sticky top-0 z-50" x-data="{ mobileOpen: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16 gap-4">
+        <div class="flex justify-between items-center h-16">
             <!-- Logo -->
             <div class="flex-shrink-0">
                 <a href="{{ route('home') }}"
-                    class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                    class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                     TechShop
                 </a>
             </div>
 
-            <!-- Search Bar (Desktop) - Centered and more prominent -->
-            <div class="hidden md:flex flex-1 justify-center px-4 max-w-2xl">
-                <livewire:product-search />
-            </div>
+            <!-- Search Bar (Desktop) -->
+            @livewire('product-search')
 
             <!-- Navigation Links / Auth -->
             <nav class="flex items-center space-x-4">
+                <!-- Order history -->
                 @auth
-                <!-- Order History -->
-                <a href="{{ route('orders.index') }}" class="p-2 text-gray-700 hover:text-blue-600" aria-label="Lịch sử đơn hàng">
+                <a href="{{ route('orders.index') }}" class="relative p-2 text-gray-600 hover:text-blue-600"
+                    aria-label="Đơn hàng">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                 </a>
-                
-                <!-- Cart with count -->
+                @else
+                <button type="button" class="relative p-2 text-gray-600 hover:text-blue-600" data-trigger-login-popup
+                    aria-label="Đơn hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </button>
+                @endauth
+
+                @auth
+                <!-- cart count logic -->
                 @php
                 $cartRelation = auth()->user()->cart;
                 $cartItemCount = $cartRelation ? $cartRelation->items()->sum('quantity') : 0;
@@ -100,16 +110,6 @@
                     </div>
                 </div>
                 @else
-                <!-- Order History (requires login) -->
-                <button type="button" class="p-2 text-gray-700 hover:text-blue-600" data-trigger-login-popup aria-label="Lịch sử đơn hàng">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                </button>
-                
-                <!-- Cart (requires login) -->
                 <button type="button" class="relative p-2 text-gray-600 hover:text-blue-600" data-trigger-login-popup
                     aria-label="Giỏ hàng">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +117,6 @@
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                 </button>
-                
                 <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                     Đăng nhập
                 </a>
@@ -130,12 +129,12 @@
 
             <!-- Mobile hamburger (optional if you add mobile menu later) -->
             <div class="md:hidden">
-                <button @click="open = !open" class="p-2 rounded-md text-gray-500 hover:bg-gray-100">
+                <button @click="mobileOpen = !mobileOpen" class="p-2 rounded-md text-gray-500 hover:bg-gray-100">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
+                        <path :class="{'hidden': mobileOpen, 'inline-flex': ! mobileOpen }" class="inline-flex"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                        <path :class="{'hidden': ! mobileOpen, 'inline-flex': mobileOpen }" class="hidden" stroke-linecap="round"
                             stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -143,14 +142,9 @@
         </div>
     </div>
 
-    <!-- Mobile collapsed content -->
-    <div class="md:hidden" x-show="open" style="display:none;">
-        <!-- Mobile Search Bar -->
-        <div class="px-4 pt-2 pb-3 border-b border-gray-200">
-            <livewire:product-search />
-        </div>
-        
-        <div class="px-4 py-3 space-y-2">
+    <!-- Mobile collapsed content placeholder (not implemented) -->
+    <div class="md:hidden" x-show="mobileOpen" style="display:none;">
+        <div class="px-4 pb-3 space-y-2">
             <a href="{{ route('home') }}" class="block py-2 text-gray-700">Trang chủ</a>
             @auth
             <a href="{{ route('profile.edit') }}" class="block py-2 text-gray-700">Tài khoản</a>

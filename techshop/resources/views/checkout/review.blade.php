@@ -121,6 +121,17 @@
                 <div class="bg-white rounded-xl shadow-md p-6">
                     <h2 class="text-2xl font-bold text-gray-900 mb-4">Sản phẩm đã chọn</h2>
                     
+                    @if(isset($isBuyNow) && $isBuyNow)
+                    <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div class="flex items-center gap-2 text-orange-700 text-sm font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Đơn hàng Mua Ngay - Sản phẩm không nằm trong giỏ hàng
+                        </div>
+                    </div>
+                    @endif
+                    
                     <div class="space-y-4">
                         @foreach($cartItems as $item)
                         @php

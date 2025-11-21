@@ -189,6 +189,17 @@
                 <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
                     <h2 class="text-xl font-bold text-gray-900 mb-4">Đơn hàng của bạn</h2>
 
+                    @if(isset($isBuyNow) && $isBuyNow)
+                    <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div class="flex items-center gap-2 text-orange-700 text-sm font-medium">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Đơn hàng Mua Ngay
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Cart Items -->
                     <div class="space-y-3 mb-4 max-h-64 overflow-y-auto">
                         @foreach($cartItems as $item)

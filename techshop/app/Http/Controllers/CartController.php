@@ -97,6 +97,36 @@ class CartController extends Controller
     }
 
     /**
+     * Buy now - Add to cart and redirect to checkout
+     */
+    public function buyNow(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+        
+        // Check stock
+        if ($product->stock < $request->quantity) {
+            return back()->with('error', '⚠️ Số lượng sản phẩm không đủ trong kho!');
+        }
+
+        // Store buy now info in session (don't add to cart yet)
+        session([
+            'buy_now' => [
+                'product_id' => $product->id,
+                'quantity' => $request->quantity,
+                'price' => $product->discount_price ?? $product->price,
+            ]
+        ]);
+
+        // Redirect directly to checkout
+        return redirect()->route('checkout.index');
+    }
+
+    /**
      * Update cart item quantity
      */
     public function update(Request $request, $itemId)
