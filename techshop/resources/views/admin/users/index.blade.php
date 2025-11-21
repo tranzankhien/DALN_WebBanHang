@@ -80,7 +80,6 @@
                     {{ $user->created_at->format('d/m/Y') }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{{ route('admin.users.show', $user) }}" class="text-gray-600 hover:text-gray-900 mr-3">Chi tiết</a>
                     <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:text-blue-900 mr-3">Sửa</a>
                     @if($user->id !== auth()->id())
                         <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');">

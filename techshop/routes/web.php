@@ -11,7 +11,6 @@ use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ProviderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PublicCategoryController;
@@ -78,9 +77,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // User Management (Quản lý người dùng)
-    Route::resource('users', UserController::class);
     
     // Inventory Management (Quản lý kho)
     Route::resource('inventory', InventoryController::class);

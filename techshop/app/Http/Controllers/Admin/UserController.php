@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\Admin\StoreUserRequest;
-use App\Http\Requests\Admin\UpdateUserRequest;
+use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
@@ -37,8 +36,15 @@ class UserController extends Controller
         return view('admin.users.create');
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(Request $request)
     {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'in:admin,customer'],
+        ]);
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -49,33 +55,27 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'Người dùng đã được tạo thành công.');
     }
 
-    public function show(User $user)
-    {
-        $user->load(['orders' => function($query) {
-            $query->latest()->take(5);
-        }, 'addresses']);
-        
-        $stats = [
-            'total_orders' => $user->orders()->count(),
-            'total_spent' => $user->orders()->where('status', '!=', 'cancelled')->sum('total_amount'),
-            'last_login' => $user->updated_at, // Tạm thời dùng updated_at hoặc cần thêm field last_login
-        ];
-
-        return view('admin.users.show', compact('user', 'stats'));
-    }
-
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(Request $request, User $user)
     {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'role' => ['required', 'in:admin,customer'],
+        ]);
+
         $user->name = $request->name;
         $user->email = $request->email;
         $user->role = $request->role;
 
         if ($request->filled('password')) {
+            $request->validate([
+                'password' => ['confirmed', Rules\Password::defaults()],
+            ]);
             $user->password = Hash::make($request->password);
         }
 
