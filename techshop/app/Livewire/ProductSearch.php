@@ -18,7 +18,7 @@ class ProductSearch extends Component
         if (!empty($this->search)) {
             
             // Khởi tạo truy vấn cơ sở
-            $query = Product::query()
+            $query = Product::with('images') // Eager load images
                 
                 // lọc theo trạng thái 'active' (đang bán)
                 ->where('status', 'active')

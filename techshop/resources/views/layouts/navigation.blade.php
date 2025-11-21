@@ -1,17 +1,19 @@
 <!-- Unified header/navigation to match home.blade.php -->
 <header class="bg-white shadow-md sticky top-0 z-50" x-data="{ open: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
+        <div class="flex justify-between items-center h-16 gap-4">
             <!-- Logo -->
             <div class="flex-shrink-0">
                 <a href="{{ route('home') }}"
-                    class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                    class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                     TechShop
                 </a>
             </div>
 
-            <!-- Search Bar (Desktop) -->
-            @livewire('product-search')
+            <!-- Search Bar (Desktop) - Centered and more prominent -->
+            <div class="hidden md:flex flex-1 justify-center px-4 max-w-2xl">
+                <livewire:product-search />
+            </div>
 
             <!-- Navigation Links / Auth -->
             <nav class="flex items-center space-x-4">
@@ -141,9 +143,14 @@
         </div>
     </div>
 
-    <!-- Mobile collapsed content placeholder (not implemented) -->
+    <!-- Mobile collapsed content -->
     <div class="md:hidden" x-show="open" style="display:none;">
-        <div class="px-4 pb-3 space-y-2">
+        <!-- Mobile Search Bar -->
+        <div class="px-4 pt-2 pb-3 border-b border-gray-200">
+            <livewire:product-search />
+        </div>
+        
+        <div class="px-4 py-3 space-y-2">
             <a href="{{ route('home') }}" class="block py-2 text-gray-700">Trang chủ</a>
             @auth
             <a href="{{ route('profile.edit') }}" class="block py-2 text-gray-700">Tài khoản</a>
