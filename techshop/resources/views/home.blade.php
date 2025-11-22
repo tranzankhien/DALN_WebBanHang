@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>TechShop - Trang chủ</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,14 +19,19 @@
 <body class="antialiased bg-gray-50">
     <!-- Header / Navigation -->
     @include('layouts.navigation')
-    
+    <a href="#" class="hidden lg:block fixed top-24 left-6 z-40" style="transform: translateY(0);">
+        <img src="https://cdn.hstatic.net/files/200000722513/file/gearvn-pc-gvn-t11-sticky-banner.jpg" alt="Left Banner" class="h-72 w-auto rounded-lg shadow-lg object-cover">
+    </a>
+    <a href="#" class="hidden lg:block fixed top-24 right-6 z-40" style="transform: translateY(0);">
+        <img src="https://cdn.hstatic.net/files/200000722513/file/gearvn-laptop-t11-sticky-banner.jpg" alt="Right Banner" class="h-72 w-auto rounded-lg shadow-lg object-cover">
+    </a>
     <!-- Advertisements -->
 
     <div x-data="advertCarousel({{ $ads->toJson() }})" x-init="init()" class="w-[70%] mx-auto relative">
 
         @if ($ads->count())
         <!-- Khung ảnh quảng cáo -->
-        <div class="relative overflow-hidden rounded-md shadow">
+        <div class="relative overflow-hidden rounded-md bg-white">
             <template x-for="(ad, i) in ads" :key="i">
                 <img x-show="index === i" :src="ad.link_url" :alt="`Quảng cáo ${ad.id_advert}`"
                     class="w-full max-h-96 object-contain mx-auto transition-opacity duration-700 bg-gray-100">
@@ -33,79 +39,14 @@
         </div>
 
         <!-- Nút tròn điều hướng -->
-        <div class="flex items-center justify-center gap-2 mt-3">
-            <template x-for="(a, i) in ads" :key="i">
-                <button @click="goTo(i)" :aria-label="`Đi tới quảng cáo ${i+1}`"
-                    class="w-3 h-3 rounded-full focus:outline-none transition"
-                    :class="index === i ? 'bg-blue-600' : 'bg-gray-300'">
-                </button>
+        <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
+            <template x-for="(ad, i) in ads" :key="i">
+                <button @click="go(i)" :class="{'bg-white': index === i, 'bg-gray-400': index !== i}"
+                    class="w-3 h-3 rounded-full border-0"></button>
             </template>
         </div>
-        @else
-        <p class="text-gray-500 text-center">Hiện chưa có quảng cáo nào.</p>
         @endif
     </div>
-
-    <script>
-    function advertCarousel(initialAds) {
-        return {
-            ads: initialAds || [],
-            index: 0,
-            timer: null,
-            init() {
-                if (this.ads.length > 1) {
-                    this.start();
-                }
-            },
-            start() {
-                this.clear();
-                this.timer = setInterval(() => {
-                    this.index = (this.index + 1) % this.ads.length;
-                }, 15000); // đổi ảnh mỗi 15s
-            },
-            clear() {
-                if (this.timer) {
-                    clearInterval(this.timer);
-                    this.timer = null;
-                }
-            },
-            goTo(i) {
-                this.index = i % this.ads.length;
-                this.start(); // reset lại thời gian xoay khi người dùng click
-            }
-        }
-    }
-    </script>
-
-
-    <!-- Categories -->
-    <section id="categories" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Danh mục sản phẩm</h2>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                @foreach($categories as $category)
-                <a href="#category-{{ $category->id }}" data-target="#category-{{ $category->id }}"
-                    data-category-id="{{ $category->id }}" class="group"
-                    aria-label="Đi tới danh mục {{ $category->name }}">
-                    <div
-                        class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                        <div
-                            class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                            {{ strtoupper(substr($category->name, 0, 1)) }}
-                        </div>
-                        <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 transition">
-                            {{ $category->name }}
-                        </h3>
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ $category->inventory_items_count }} sản phẩm
-                        </p>
-                    </div>
-                </a>
-                @endforeach
-            </div>
-        </div>
-    </section>
 
     <script>
     // Smooth scroll to category sections when clicking top-category anchors.
@@ -152,57 +93,78 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-gray-900">Sản phẩm nổi bật</h2>
-                <a href="{{ route('products.outstanding') }}" class="text-blue-600 hover:text-blue-700 font-medium">Xem tất cả →</a>
+                <a href="{{ route('products.outstanding') }}" class="text-blue-600 hover:text-blue-700 font-medium">Xem
+                    tất cả →</a>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 grid-rows-4 md:grid-rows-2 gap-6">
-                @foreach($featuredProducts->take(8) as $product)
+            <div id="featured-carousel" class="relative">
                 @php
-                    $mainImage = $product->images->where('is_main', true)->first() ?? $product->images->first();
+                $pages = $featuredProducts->chunk(8);
                 @endphp
 
-                <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-72">
-                    <!-- image block -->
-                    <div class="h-40 bg-gray-50 flex items-center justify-center p-4">
-                        @if($mainImage)
-                        <a href="{{ route('productInformation', $product->id) }}" class="block w-full h-full flex items-center justify-center">
-                            <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
-                                class="max-h-full max-w-full object-contain" data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png" onerror="this.src=this.dataset.fallback">
-                        </a>
-                        @else
-                        <div class="w-full h-full flex items-center justify-center text-gray-400">
-                            <img src="https://cdn-icons-png.flaticon.com/512/679/679720.png" class="max-h-full max-w-full" alt="no image">
-                        </div>
-                        @endif
-                    </div>
+                <div class="overflow-hidden">
+                    <div class="feature-track flex transition-transform duration-500 ease-in-out" style="width: {{ $pages->count() * 100 }}%;">
+                        @foreach($pages as $pIndex => $page)
+                        <div class="feature-page min-w-full" data-page-index="{{ $pIndex }}">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                @foreach($page as $product)
+                                @php
+                                $mainImage = $product->images->where('is_main', true)->first() ?? $product->images->first();
+                                @endphp
 
-                    <!-- content -->
-                    <div class="p-4 flex-1 flex flex-col">
-                        <p class="text-xs text-gray-500 mb-1">{{ optional($product->inventoryItem->category)->name }}</p>
-                        <h3 class="text-sm font-semibold text-gray-900 leading-tight line-clamp-2 mb-2">
-                            <a href="{{ route('productInformation', $product->id) }}">{{ $product->name }}</a>
-                        </h3>
+                                <div class="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-72 relative transform transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
+                                    <!-- image block -->
+                                    <div class="h-40 bg-gray-50 flex items-center justify-center p-4">
+                                        @if($mainImage)
+                                        <a href="{{ route('productInformation', $product->id) }}" class="block w-full h-full flex items-center justify-center">
+                                            <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}" class="max-h-full max-w-full object-contain" data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png" onerror="this.src=this.dataset.fallback">
+                                        </a>
+                                        @else
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/679/679720.png" class="max-h-full max-w-full" alt="no image">
+                                        </div>
+                                        @endif
+                                    </div>
 
-                        <div class="mt-auto flex items-center justify-between">
-                            <div>
-                                @if($product->discount_price)
-                                <div class="text-red-600 font-bold">{{ number_format($product->discount_price) }}đ</div>
-                                <div class="text-gray-400 text-xs line-through">{{ number_format($product->price) }}đ</div>
-                                @else
-                                <div class="text-gray-900 font-bold">{{ number_format($product->price) }}đ</div>
-                                @endif
+                                    <!-- content -->
+                                    <div class="p-4 flex-1 flex flex-col">
+                                        <p class="text-xs text-gray-500 mb-1">{{ optional($product->inventoryItem->category)->name }}</p>
+                                        <h3 class="text-sm font-semibold text-gray-900 leading-tight line-clamp-2 mb-2"><a href="{{ route('productInformation', $product->id) }}">{{ $product->name }}</a></h3>
+
+                                        <div class="mt-auto flex items-center justify-between">
+                                            <div>
+                                                @if($product->discount_price)
+                                                <div class="text-red-600 font-bold">{{ number_format($product->discount_price) }}đ</div>
+                                                <div class="text-gray-400 text-xs line-through">{{ number_format($product->price) }}đ</div>
+                                                @else
+                                                <div class="text-gray-900 font-bold">{{ number_format($product->price) }}đ</div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                    <!-- absolute cart button -->
+                                    <button type="button" data-url="{{ route('cart.add') }}" data-product-id="{{ $product->id }}" data-method="post" @if($product->stock <= 0) disabled @endif
+                                        class="js-add-to-cart absolute bottom-4 right-4 z-10 inline-flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg @if($product->stock <= 0) opacity-60 cursor-not-allowed pointer-events-none @endif">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z" />
+                                        </svg>
+                                    </button>
+                                    </div>
+                                </div>
+                                @endforeach
                             </div>
-
-                            <a href="{{ route('cart.add', $product->id) ?? '#' }}" class="inline-flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z"/>
-                                </svg>
-                            </a>
                         </div>
+                        @endforeach
                     </div>
                 </div>
-                @endforeach
+
+                @if($pages->count() > 1)
+                <div class="mt-6 flex items-center justify-center gap-3">
+                    <button id="featured-prev" aria-label="Trang trước" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">‹</button>
+                    <div id="featured-dots" class="flex items-center gap-2"></div>
+                    <button id="featured-next" aria-label="Trang sau" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">›</button>
+                </div>
+                @endif
             </div>
         </div>
     </section>
@@ -239,30 +201,29 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
                     @forelse($cat->previewProducts as $product)
                     <div
-                        class="bg-white rounded-xl shadow hover:shadow-lg transition duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1">
+                        class="bg-white rounded-xl shadow hover:shadow-lg transition duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1 relative">
                         <!-- Hình ảnh sản phẩm -->
                         <div class="relative bg-gray-50">
                             @php
                             $mainImage = $product->images->where('is_main', true)->first() ?? $product->images->first();
                             @endphp
 
-                            @if($mainImage)
-                            <div
-                                class="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
-                                <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
-                                    class="product-auto-fit max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
-                                    data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png" />
-                                <a href="{{ route('productInformation', $product->id) }}" class="absolute inset-0"
-                                    aria-label="Xem {{ $product->name }}"></a>
+                            <div class="h-40 bg-gray-50 flex items-center justify-center p-4">
+                                @if($mainImage)
+                                <a href="{{ route('productInformation', $product->id) }}"
+                                    class="block w-full h-full flex items-center justify-center">
+                                    <img src="{{ $mainImage->image_url }}" alt="{{ $product->name }}"
+                                        class="max-h-full max-w-full object-contain"
+                                        data-fallback="https://cdn-icons-png.flaticon.com/512/679/679720.png"
+                                        onerror="this.src=this.dataset.fallback">
+                                </a>
+                                @else
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/679/679720.png"
+                                        class="max-h-full max-w-full" alt="no image">
+                                </div>
+                                @endif
                             </div>
-                            @else
-                            <div class="w-full h-48 flex items-center justify-center bg-gray-100 text-gray-400">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            @endif
 
 
                             <!-- Badge giảm giá -->
@@ -276,6 +237,15 @@
                             </span>
                             @endif
                         </div>
+
+                        <!-- absolute cart button -->
+                        <button type="button" data-url="{{ route('cart.add') }}" data-product-id="{{ $product->id }}" data-method="post" @if($product->stock <= 0) disabled @endif
+                            class="js-add-to-cart absolute bottom-3 right-3 z-10 inline-flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg @if($product->stock <= 0) opacity-60 cursor-not-allowed pointer-events-none @endif">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4z" />
+                            </svg>
+                        </button>
 
                         <!-- Thông tin sản phẩm -->
                         <div class="p-3">
@@ -304,7 +274,9 @@
                             <div class="mt-1 flex items-center text-yellow-400 text-sm">
                                 ★★★★★
                                 <span class="text-gray-500 text-xs ml-1">(0 đánh giá)</span>
+                                <!-- cart button moved to absolute position inside card -->
                             </div>
+
                         </div>
                     </div>
                     @empty
@@ -317,63 +289,140 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3
-                        class="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-                        TechShop</h3>
-                    <p class="text-gray-400 text-sm">
-                        Cung cấp các sản phẩm điện tử chất lượng cao với giá tốt nhất.
-                    </p>
-                </div>
+    
+    <!-- Toast container for this page -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50"></div>
+    <script>
+        (function () {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            window.isAuthenticated = @json(Auth::check());
+            window.currentUser = @json(Auth::check() ? Auth::user()->only(['id','email']) : null);
 
-                <div>
-                    <h4 class="font-semibold mb-4">Về chúng tôi</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-white">Giới thiệu</a></li>
-                        <li><a href="#" class="hover:text-white">Liên hệ</a></li>
-                        <li><a href="#" class="hover:text-white">Tuyển dụng</a></li>
-                    </ul>
-                </div>
+            function showToast(message, type = 'success', duration = 3000) {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const el = document.createElement('div');
+                el.className = (type === 'error' ? 'bg-red-500' : 'bg-green-600') + ' text-white px-4 py-3 rounded shadow-lg mb-2 max-w-sm flex items-center gap-3';
+                el.style.opacity = '0';
+                el.innerHTML = `<div class="flex-1 text-sm">${message}</div>`;
+                container.appendChild(el);
+                requestAnimationFrame(() => { el.style.transition = 'opacity 200ms'; el.style.opacity = '1'; });
+                setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 250); }, duration);
+            }
 
-                <div>
-                    <h4 class="font-semibold mb-4">Hỗ trợ</h4>
-                    <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="#" class="hover:text-white">Chính sách bảo hành</a></li>
-                        <li><a href="#" class="hover:text-white">Chính sách đổi trả</a></li>
-                        <li><a href="#" class="hover:text-white">Hướng dẫn mua hàng</a></li>
-                    </ul>
-                </div>
+            async function addToCart(options) {
+                const url = options.url;
+                const method = (options.method || 'POST').toUpperCase();
+                const productId = options.productId;
+                const quantity = options.quantity || 1;
+                try {
+                    if (method === 'GET') {
+                        const res = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
+                    } else {
+                        const form = new FormData(); if (productId) form.append('product_id', productId); form.append('quantity', quantity);
+                        const res = await fetch(url, { method: method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf }, body: form });
+                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
+                    }
+                } catch (e) {}
+                if (typeof openLoginPopup === 'function') openLoginPopup();
+                return false;
+            }
 
-                <div>
-                    <h4 class="font-semibold mb-4">Theo dõi chúng tôi</h4>
-                    <div class="flex space-x-4">
-                        <a href="#"
-                            class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                        </a>
-                        <a href="#"
-                            class="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center hover:bg-pink-700">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.js-add-to-cart');
+                if (!btn) return;
+                e.preventDefault();
+                const url = btn.dataset.url || btn.getAttribute('href') || btn.dataset.urlFallback;
+                const method = btn.dataset.method || btn.getAttribute('data-method') || 'POST';
+                const productId = btn.dataset.productId || btn.getAttribute('data-product-id');
+                const qtyFromBtn = btn.dataset.quantity || btn.getAttribute('data-quantity');
+                let quantity = qtyFromBtn ? parseInt(qtyFromBtn, 10) : null;
+                if (!quantity) {
+                    const qEl = document.getElementById('cart-quantity') || document.getElementById('quantity');
+                    if (qEl) quantity = parseInt(qEl.value || qEl.getAttribute('value') || 1, 10);
+                }
+                if (!window.isAuthenticated) { if (typeof openLoginPopup === 'function') openLoginPopup(); return; }
+                if (!window.currentUser || !window.currentUser.email) { if (typeof openLoginPopup === 'function') openLoginPopup(); return; }
+                if (!url) { if (typeof openLoginPopup === 'function') openLoginPopup(); return; }
+                addToCart({ url: url, method: method, productId: productId, quantity: quantity });
+            });
+        })();
+    </script>
+        <script>
+            // Featured products pager: slide the .feature-track by page index
+            (function () {
+                const container = document.getElementById('featured-carousel');
+                if (!container) return;
+                const track = container.querySelector('.feature-track');
+                if (!track) return;
 
-            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-                <p>&copy; 2025 TechShop. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+                const pages = Array.from(container.querySelectorAll('.feature-page'));
+                if (!pages.length) return;
+
+                const dotsWrap = document.getElementById('featured-dots');
+                const prevBtn = document.getElementById('featured-prev');
+                const nextBtn = document.getElementById('featured-next');
+                let index = 0;
+
+                function updateDots(active) {
+                    if (!dotsWrap) return;
+                    dotsWrap.innerHTML = '';
+                    pages.forEach((p, idx) => {
+                        const b = document.createElement('button');
+                        b.className = 'w-3 h-3 rounded-full ' + (idx === active ? 'bg-blue-600' : 'bg-gray-300');
+                        b.setAttribute('aria-label', `Trang ${idx+1}`);
+                        b.addEventListener('click', () => showPage(idx));
+                        dotsWrap.appendChild(b);
+                    });
+                }
+
+                function showPage(i) {
+                    i = (i + pages.length) % pages.length;
+                    // translate track
+                    track.style.transform = `translateX(-${i * 100}%)`;
+                    updateDots(i);
+                    index = i;
+                }
+
+                if (prevBtn) prevBtn.addEventListener('click', () => showPage(index - 1));
+                if (nextBtn) nextBtn.addEventListener('click', () => showPage(index + 1));
+
+                // initialize
+                updateDots(0);
+                showPage(0);
+            })();
+        </script>
+    @include('components.pop-up.required_login-popup')
+    <script>
+        (function () {
+            function openLoginPopup(message) {
+                const modal = document.getElementById('required-login-popup');
+                if (!modal) return;
+                const msgEl = document.getElementById('required-login-popup-message');
+                if (msgEl && message) msgEl.textContent = message;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+            function closeLoginPopup() {
+                const modal = document.getElementById('required-login-popup');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+            window.openLoginPopup = openLoginPopup;
+            window.closeLoginPopup = closeLoginPopup;
+            document.addEventListener('click', function (e) {
+                const closeBtn = e.target.closest('[data-close-login-popup]');
+                if (closeBtn) { e.preventDefault(); closeLoginPopup(); }
+                const modal = document.getElementById('required-login-popup');
+                if (modal && e.target === modal) closeLoginPopup();
+            });
+        })();
+    </script>
+    @include('partials.footer')
     @livewireScripts
 </body>
 

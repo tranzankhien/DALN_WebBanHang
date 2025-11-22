@@ -234,10 +234,6 @@
     <!-- Cancel Order Popup -->
     @include('orders.notification.cancel_order_popup')
 
-    <footer class="bg-gray-900 text-white py-8 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; {{ date('Y') }} TechShop. All rights reserved.</p>
-        </div>
-    </footer>
+    @include('partials.footer')
 </body>
 </html>

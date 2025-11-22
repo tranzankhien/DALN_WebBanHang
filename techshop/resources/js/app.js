@@ -1,5 +1,39 @@
 import './bootstrap';
 
+// Alpine-compatible advertCarousel component factory
+// Usage in Blade: x-data="advertCarousel({{ $ads->toJson() }})" x-init="init()"
+window.advertCarousel = function(initialAds) {
+    return {
+        ads: Array.isArray(initialAds) ? initialAds : (initialAds ? JSON.parse(initialAds) : []),
+        index: 0,
+        timer: null,
+        init() {
+            // start auto-rotate if there are ads
+            if (this.ads && this.ads.length > 1) {
+                this.start();
+            }
+        },
+        start(interval = 5000) {
+            this.stop();
+            this.timer = setInterval(() => {
+                this.next();
+            }, interval);
+        },
+        stop() {
+            if (this.timer) { clearInterval(this.timer); this.timer = null; }
+        },
+        go(i) {
+            this.index = i % (this.ads.length || 1);
+        },
+        next() {
+            this.index = (this.index + 1) % (this.ads.length || 1);
+        },
+        prev() {
+            this.index = (this.index - 1 + (this.ads.length || 1)) % (this.ads.length || 1);
+        }
+    };
+};
+
 /**
  * ============================================
  * TECHSHOP - GLOBAL POPUP HANDLERS

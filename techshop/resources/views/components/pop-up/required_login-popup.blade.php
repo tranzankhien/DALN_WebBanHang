@@ -14,7 +14,7 @@
                 </svg>
             </div>
             <h2 class="mt-4 text-xl font-semibold text-gray-900">Vui lòng đăng nhập</h2>
-            <p class="mt-2 text-sm text-gray-600">Bạn cần đăng nhập để sử dụng tính năng giỏ hàng và theo dõi đơn hàng.</p>
+            <p id="required-login-popup-message" class="mt-2 text-sm text-gray-600">Bạn cần đăng nhập để sử dụng tính năng giỏ hàng và theo dõi đơn hàng.</p>
             <div class="mt-6 flex w-full flex-col gap-3">
                 <a href="{{ route('login') }}" class="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white hover:from-blue-600 hover:to-blue-700" data-close-login-popup>
                     Đăng nhập
