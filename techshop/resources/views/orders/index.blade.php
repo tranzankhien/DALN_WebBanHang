@@ -46,18 +46,6 @@
             <p class="mt-1 text-sm text-gray-600">Quản lý và theo dõi các đơn hàng của bạn</p>
         </div>
 
-        @if(session('success'))
-        <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-            {{ session('success') }}
-        </div>
-        @endif
-
-        @if(session('error'))
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-            {{ session('error') }}
-        </div>
-        @endif
-
         @if($orders->count() > 0)
         <div class="space-y-4">
             @foreach($orders as $order)

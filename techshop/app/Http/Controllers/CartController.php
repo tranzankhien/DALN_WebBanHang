@@ -153,13 +153,15 @@ class CartController extends Controller
 
         // Return JSON for AJAX requests
         if ($request->ajax() || $request->wantsJson()) {
+            $price = $cartItem->product->discount_price ?? $cartItem->product->price;
             return response()->json([
                 'success' => true,
                 'message' => '✅ Đã cập nhật số lượng!',
                 'item' => [
                     'id' => $cartItem->id,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->price
+                    'price' => $price,
+                    'total' => $price * $cartItem->quantity
                 ]
             ]);
         }

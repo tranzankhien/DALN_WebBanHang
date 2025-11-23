@@ -24,8 +24,8 @@ Route::get('/product/{id}', [PublicProductController::class, 'productInformation
 // Public product search (full results page)
 Route::get('/products/search', [PublicProductController::class, 'search'])->name('products.search');
 
-// Shopping Cart & Checkout Routes (require authentication)
-Route::middleware('auth')->group(function () {
+// Shopping Cart & Checkout Routes (require authentication and email verification)
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'add'])->name('add');
@@ -37,8 +37,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('checkout')->name('checkout.')->group(function () {
-        Route::get('/', [CheckoutController::class, 'index'])->name('index');
-        Route::post('/review', [CheckoutController::class, 'review'])->name('review');
+        Route::match(['get', 'post'], '/', [CheckoutController::class, 'index'])->name('index');
+        Route::match(['get', 'post'], '/review', [CheckoutController::class, 'review'])->name('review');
         Route::post('/place-order', [CheckoutController::class, 'placeOrder'])->name('place-order');
         Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
     });
@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{id}', [OrderController::class, 'show'])->name('show');
         Route::post('/{id}/cancel', [OrderController::class, 'cancel'])->name('cancel');
+        Route::post('/{id}/retry-payment', [OrderController::class, 'retryPayment'])->name('retry-payment');
     });
 });
 
@@ -57,6 +58,10 @@ Route::get('/auth/{provider}/redirect', [ProviderController::class, 'redirect'])
     
 Route::get('/auth/{provider}/callback', [ProviderController::class, 'callback'])
     ->name('social.callback');
+
+// VNPay Return URL (no auth required as VNPay will redirect here)
+Route::get('/checkout/vnpay-return', [CheckoutController::class, 'vnpayReturn'])
+    ->name('checkout.vnpay-return');
 
 // Customer Dashboard (after login)
 Route::get('/dashboard', function () {
@@ -68,14 +73,14 @@ Route::get('/dashboard', function () {
     return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // Admin Routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     

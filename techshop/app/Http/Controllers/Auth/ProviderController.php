@@ -59,6 +59,7 @@ class ProviderController extends Controller
                     $user->provider = $provider;
                     $user->provider_id = $socialUser->getId();
                     $user->avatar = $socialUser->getAvatar();
+                    // Tự động xác thực email khi đăng nhập bằng Google
                     if (!$user->email_verified_at) {
                         $user->email_verified_at = now();
                     }
@@ -73,8 +74,14 @@ class ProviderController extends Controller
                         'provider' => $provider,
                         'provider_id' => $socialUser->getId(),
                         'avatar' => $socialUser->getAvatar(),
-                        'email_verified_at' => now(),
+                        'email_verified_at' => now(), // Tự động xác thực email
                     ]);
+                }
+            } else {
+                // User đã tồn tại với provider này, đảm bảo email đã xác thực
+                if (!$user->email_verified_at) {
+                    $user->email_verified_at = now();
+                    $user->save();
                 }
             }
 

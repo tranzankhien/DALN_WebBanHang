@@ -5,20 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Xác nhận đơn hàng - TechShop</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @livewireStyles
 </head>
 <body class="antialiased bg-gray-50">
-    <!-- Simple Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex items-center">
-                <a href="{{ route('home') }}" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                    TechShop
-                </a>
-                <span class="mx-4 text-gray-300">→</span>
-                <span class="text-gray-600 font-medium">Xác nhận đơn hàng</span>
-            </div>
-        </div>
-    </header>
+    <!-- Navigation Header -->
+    @include('layouts.navigation')
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Progress Steps -->
@@ -56,64 +48,86 @@
                 <div class="bg-white rounded-xl shadow-md p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-bold text-gray-900">Thông tin giao hàng</h2>
-                        <a href="{{ route('checkout.index') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        <button type="button" id="edit-shipping-btn" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                             Chỉnh sửa
-                        </a>
+                        </button>
                     </div>
                     
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2" id="shipping-info-display">
                         <div class="flex">
                             <span class="w-32 text-gray-600">Người nhận:</span>
-                            <span class="font-medium text-gray-900">{{ $validated['shipping_name'] }}</span>
+                            <span class="font-medium text-gray-900" id="display-name">{{ $validated['shipping_name'] }}</span>
                         </div>
                         <div class="flex">
                             <span class="w-32 text-gray-600">Số điện thoại:</span>
-                            <span class="font-medium text-gray-900">{{ $validated['shipping_phone'] }}</span>
+                            <span class="font-medium text-gray-900" id="display-phone">{{ $validated['shipping_phone'] }}</span>
                         </div>
                         <div class="flex">
                             <span class="w-32 text-gray-600">Địa chỉ:</span>
-                            <span class="font-medium text-gray-900">
+                            <span class="font-medium text-gray-900" id="display-address">
                                 {{ $validated['shipping_address'] }}
-                                @if($validated['shipping_ward']), {{ $validated['shipping_ward'] }}@endif
-                                @if($validated['shipping_district']), {{ $validated['shipping_district'] }}@endif
-                                @if($validated['shipping_city']), {{ $validated['shipping_city'] }}@endif
+                                @if($validated['shipping_ward'])<span id="display-ward">, {{ $validated['shipping_ward'] }}</span>@endif
+                                @if($validated['shipping_district'])<span id="display-district">, {{ $validated['shipping_district'] }}</span>@endif
+                                @if($validated['shipping_city'])<span id="display-city">, {{ $validated['shipping_city'] }}</span>@endif
                             </span>
                         </div>
                         @if($validated['customer_note'])
                         <div class="flex">
                             <span class="w-32 text-gray-600">Ghi chú:</span>
-                            <span class="font-medium text-gray-900">{{ $validated['customer_note'] }}</span>
+                            <span class="font-medium text-gray-900" id="display-note">{{ $validated['customer_note'] }}</span>
                         </div>
                         @endif
                     </div>
-                </div>
-
-                <!-- Payment Method -->
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Phương thức thanh toán</h2>
                     
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        @if($validated['payment_method'] === 'cod')
-                        <div class="flex items-center">
-                            <svg class="w-12 h-12 text-green-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                    <!-- Edit Form (Hidden) -->
+                    <div id="shipping-edit-form" class="hidden mt-4">
+                        <form id="update-shipping-form" class="space-y-4">
                             <div>
-                                <p class="font-semibold text-gray-900">Thanh toán khi nhận hàng (COD)</p>
-                                <p class="text-sm text-gray-600">Thanh toán bằng tiền mặt khi nhận hàng</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                                <input type="text" name="shipping_name" value="{{ $validated['shipping_name'] }}" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                        </div>
-                        @else
-                        <div class="flex items-center">
-                            <svg class="w-12 h-12 text-blue-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
                             <div>
-                                <p class="font-semibold text-gray-900">Chuyển khoản ngân hàng</p>
-                                <p class="text-sm text-gray-600">Chuyển khoản qua ngân hàng</p>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                                <input type="tel" name="shipping_phone" value="{{ $validated['shipping_phone'] }}" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
-                        </div>
-                        @endif
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                                <input type="text" name="shipping_address" value="{{ $validated['shipping_address'] }}" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phường/Xã</label>
+                                    <input type="text" name="shipping_ward" value="{{ $validated['shipping_ward'] ?? '' }}"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Quận/Huyện</label>
+                                    <input type="text" name="shipping_district" value="{{ $validated['shipping_district'] ?? '' }}"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành</label>
+                                    <input type="text" name="shipping_city" value="{{ $validated['shipping_city'] ?? '' }}"
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                                <textarea name="customer_note" rows="2"
+                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ $validated['customer_note'] ?? '' }}</textarea>
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="flex-1 bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                                    Lưu thay đổi
+                                </button>
+                                <button type="button" id="cancel-edit-btn" class="flex-1 bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition">
+                                    Hủy
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -177,6 +191,16 @@
                             <span>Phí vận chuyển:</span>
                             <span>{{ number_format($shippingFee) }}đ</span>
                         </div>
+                        <div class="flex justify-between text-gray-600 text-sm">
+                            <span>Thanh toán:</span>
+                            <span class="font-medium">
+                                @if($validated['payment_method'] === 'cod')
+                                    COD
+                                @else
+                                    VNPay
+                                @endif
+                            </span>
+                        </div>
                         <div class="flex justify-between text-2xl font-bold text-gray-900 pt-3 border-t">
                             <span>Tổng cộng:</span>
                             <span class="text-red-600">{{ number_format($total) }}đ</span>
@@ -184,11 +208,28 @@
                     </div>
 
                     <!-- Confirm Order Button -->
-                    <form action="{{ route('checkout.place-order') }}" method="POST">
+                    <form action="{{ route('checkout.place-order') }}" method="POST" id="order-form">
                         @csrf
-                        <button type="submit" class="w-full bg-red-600 from-red-600 to-red-700 text-white font-bold py-3 px-6 rounded-lg hover:shadow-lg transition duration-300 mb-3">
-                            ✓ Xác nhận đặt hàng
-                        </button>
+                        @if($validated['payment_method'] === 'cod')
+                            <!-- COD: Direct order placement -->
+                            <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-3 px-6 rounded-lg hover:shadow-lg transition duration-300 mb-3">
+                                ✓ Xác nhận đặt hàng
+                            </button>
+                        @else
+                            <!-- Bank Transfer: Show VNPay payment option -->
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg hover:shadow-lg transition duration-300 mb-3">
+                                💳 Thanh toán qua VNPay
+                            </button>
+                            
+                            <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p class="text-xs text-blue-700 text-center">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Bạn sẽ được chuyển đến trang thanh toán VNPay
+                                </p>
+                            </div>
+                        @endif
                     </form>
 
                     <a href="{{ route('checkout.index') }}" class="block text-center text-blue-600 hover:text-blue-700 font-medium">
@@ -208,5 +249,95 @@
             </div>
         </div>
     </main>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editBtn = document.getElementById('edit-shipping-btn');
+        const cancelBtn = document.getElementById('cancel-edit-btn');
+        const displayDiv = document.getElementById('shipping-info-display');
+        const editForm = document.getElementById('shipping-edit-form');
+        const updateForm = document.getElementById('update-shipping-form');
+        
+        // Show edit form
+        editBtn.addEventListener('click', function() {
+            displayDiv.classList.add('hidden');
+            editForm.classList.remove('hidden');
+        });
+        
+        // Cancel edit
+        cancelBtn.addEventListener('click', function() {
+            editForm.classList.add('hidden');
+            displayDiv.classList.remove('hidden');
+        });
+        
+        // Handle form submission
+        updateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(updateForm);
+            
+            // Update display values
+            document.getElementById('display-name').textContent = formData.get('shipping_name');
+            document.getElementById('display-phone').textContent = formData.get('shipping_phone');
+            
+            let addressText = formData.get('shipping_address');
+            if (formData.get('shipping_ward')) {
+                addressText += ', ' + formData.get('shipping_ward');
+            }
+            if (formData.get('shipping_district')) {
+                addressText += ', ' + formData.get('shipping_district');
+            }
+            if (formData.get('shipping_city')) {
+                addressText += ', ' + formData.get('shipping_city');
+            }
+            document.getElementById('display-address').textContent = addressText;
+            
+            const noteDisplay = document.getElementById('display-note');
+            if (noteDisplay && formData.get('customer_note')) {
+                noteDisplay.textContent = formData.get('customer_note');
+            }
+            
+            // Update session via AJAX
+            fetch('{{ route("checkout.review") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    shipping_name: formData.get('shipping_name'),
+                    shipping_phone: formData.get('shipping_phone'),
+                    shipping_address: formData.get('shipping_address'),
+                    shipping_ward: formData.get('shipping_ward'),
+                    shipping_district: formData.get('shipping_district'),
+                    shipping_city: formData.get('shipping_city'),
+                    customer_note: formData.get('customer_note'),
+                    payment_method: '{{ $validated["payment_method"] }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide form, show display
+                editForm.classList.add('hidden');
+                displayDiv.classList.remove('hidden');
+                
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                successDiv.textContent = '✓ Đã cập nhật thông tin giao hàng';
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật thông tin!');
+            });
+        });
+    });
+    </script>
+    @livewireScripts
 </body>
 </html>

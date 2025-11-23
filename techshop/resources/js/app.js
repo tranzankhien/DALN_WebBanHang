@@ -105,4 +105,32 @@ if (typeof window !== 'undefined') {
     });
 }
 
+/**
+ * ============================================
+ * CART COUNT UPDATE - REAL-TIME
+ * ============================================
+ */
+window.updateCartCount = function() {
+    fetch('/cart/count', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.count !== undefined) {
+            const badge = document.querySelector('.cart-count-badge');
+            if (badge) {
+                badge.textContent = data.count;
+                // Add animation
+                badge.classList.add('scale-125');
+                setTimeout(() => badge.classList.remove('scale-125'), 200);
+            }
+        }
+    })
+    .catch(error => console.error('Error updating cart count:', error));
+};
 

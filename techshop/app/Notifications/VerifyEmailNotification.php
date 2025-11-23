@@ -19,12 +19,14 @@ class VerifyEmailNotification extends VerifyEmail
 
         return (new MailMessage)
             ->subject('Xác thực địa chỉ Email - TechShop')
-            ->greeting('Xin chào!')
-            ->line('Cảm ơn bạn đã đăng ký tài khoản tại TechShop!')
-            ->line('Vui lòng nhấp vào nút bên dưới để xác thực địa chỉ email của bạn:')
+            ->greeting('Xin chào ' . $notifiable->name . ',')
+            ->line('Cảm ơn bạn đã đăng ký tài khoản tại TechShop! Chúng tôi rất vui mừng được chào đón bạn.')
+            ->line('Vui lòng nhấn vào nút bên dưới để xác thực địa chỉ email của bạn và kích hoạt tài khoản:')
             ->action('Xác thực Email', $verificationUrl)
-            ->line('Link xác thực này sẽ hết hạn sau 60 phút.')
-            ->line('Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email này.');
+            ->line('⏱️ Link có hiệu lực trong 15 phút.')
+            ->line('')
+            ->line('Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email này hoặc liên hệ với bộ phận hỗ trợ nếu bạn có thắc mắc.')
+            ->salutation('Đây là email tự động, vui lòng không trả lời!');
     }
 
     /**
@@ -34,7 +36,7 @@ class VerifyEmailNotification extends VerifyEmail
     {
         return URL::temporarySignedRoute(
             'verification.verify',
-            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            Carbon::now()->addMinutes(15), // Changed from 60 to 15 minutes
             [
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),

@@ -290,25 +290,11 @@
     </section>
 
     
-    <!-- Toast container for this page -->
-    <div id="toast-container" class="fixed top-6 right-6 z-50"></div>
     <script>
         (function () {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             window.isAuthenticated = @json(Auth::check());
             window.currentUser = @json(Auth::check() ? Auth::user()->only(['id','email']) : null);
-
-            function showToast(message, type = 'success', duration = 3000) {
-                const container = document.getElementById('toast-container');
-                if (!container) return;
-                const el = document.createElement('div');
-                el.className = (type === 'error' ? 'bg-red-500' : 'bg-green-600') + ' text-white px-4 py-3 rounded shadow-lg mb-2 max-w-sm flex items-center gap-3';
-                el.style.opacity = '0';
-                el.innerHTML = `<div class="flex-1 text-sm">${message}</div>`;
-                container.appendChild(el);
-                requestAnimationFrame(() => { el.style.transition = 'opacity 200ms'; el.style.opacity = '1'; });
-                setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 250); }, duration);
-            }
 
             async function addToCart(options) {
                 const url = options.url;
@@ -318,11 +304,27 @@
                 try {
                     if (method === 'GET') {
                         const res = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
+                        if (res.ok) { 
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                            }
+                            if (typeof window.updateCartCount === 'function') {
+                                window.updateCartCount();
+                            }
+                            return true; 
+                        }
                     } else {
                         const form = new FormData(); if (productId) form.append('product_id', productId); form.append('quantity', quantity);
                         const res = await fetch(url, { method: method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf }, body: form });
-                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
+                        if (res.ok) { 
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                            }
+                            if (typeof window.updateCartCount === 'function') {
+                                window.updateCartCount();
+                            }
+                            return true; 
+                        }
                     }
                 } catch (e) {}
                 if (typeof openLoginPopup === 'function') openLoginPopup();
@@ -397,6 +399,10 @@
     <script>
         (function () {
             function openLoginPopup(message) {
+                // Only show popup if user is NOT authenticated
+                if (window.isAuthenticated) {
+                    return;
+                }
                 const modal = document.getElementById('required-login-popup');
                 if (!modal) return;
                 const msgEl = document.getElementById('required-login-popup-message');

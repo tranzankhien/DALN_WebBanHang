@@ -685,25 +685,6 @@
         window.isAuthenticated = @json(Auth::check());
         window.currentUser = @json(Auth::check() ? Auth::user()->only(['id', 'email']) : null);
 
-        function showToast(message, type = 'success', duration = 3000) {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const el = document.createElement('div');
-            el.className = (type === 'error' ? 'bg-red-500' : 'bg-green-600') +
-                ' text-white px-4 py-3 rounded shadow-lg mb-2 max-w-sm flex items-center gap-3';
-            el.style.opacity = '0';
-            el.innerHTML = `<div class="flex-1 text-sm">${message}</div>`;
-            container.appendChild(el);
-            requestAnimationFrame(() => {
-                el.style.transition = 'opacity 200ms';
-                el.style.opacity = '1';
-            });
-            setTimeout(() => {
-                el.style.opacity = '0';
-                setTimeout(() => el.remove(), 250);
-            }, duration);
-        }
-
         async function addToCart(options) {
             const url = options.url;
             const method = (options.method || 'POST').toUpperCase();
@@ -719,7 +700,12 @@
                         }
                     });
                     if (res.ok) {
-                        showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success');
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                        }
+                        if (typeof window.updateCartCount === 'function') {
+                            window.updateCartCount();
+                        }
                         return true;
                     }
                 } else {
@@ -736,12 +722,16 @@
                         body: form
                     });
                     if (res.ok) {
-                        showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success');
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
+                        }
+                        if (typeof window.updateCartCount === 'function') {
+                            window.updateCartCount();
+                        }
                         return true;
                     }
                 }
             } catch (e) {}
-            if (typeof openLoginPopup === 'function') openLoginPopup();
             return false;
         }
 
@@ -749,27 +739,28 @@
             const btn = e.target.closest('.js-add-to-cart');
             if (!btn) return;
             e.preventDefault();
-            const url = btn.dataset.url || btn.getAttribute('href') || btn.dataset.urlFallback;
-            const method = btn.dataset.method || btn.getAttribute('data-method') || 'POST';
-            const productId = btn.dataset.productId || btn.getAttribute('data-product-id');
-            const qtyFromBtn = btn.dataset.quantity || btn.getAttribute('data-quantity');
-            let quantity = qtyFromBtn ? parseInt(qtyFromBtn, 10) : null;
-            if (!quantity) {
-                const qEl = document.getElementById('cart-quantity') || document.getElementById('quantity');
-                if (qEl) quantity = parseInt(qEl.value || qEl.getAttribute('value') || 1, 10);
-            }
+            
+            // Check authentication first
             if (!window.isAuthenticated) {
                 if (typeof openLoginPopup === 'function') openLoginPopup();
                 return;
             }
-            if (!window.currentUser || !window.currentUser.email) {
-                if (typeof openLoginPopup === 'function') openLoginPopup();
-                return;
+            
+            const url = btn.dataset.url || btn.getAttribute('href') || btn.dataset.urlFallback;
+            const method = btn.dataset.method || btn.getAttribute('data-method') || 'POST';
+            const productId = btn.dataset.productId || btn.getAttribute('data-product-id');
+            
+            // Get quantity - check quantity input field first
+            let quantity = 1;
+            const qtyInput = document.getElementById('quantity');
+            if (qtyInput) {
+                quantity = parseInt(qtyInput.value, 10) || 1;
             }
+            
             if (!url) {
-                if (typeof openLoginPopup === 'function') openLoginPopup();
                 return;
             }
+            
             addToCart({
                 url: url,
                 method: method,
@@ -777,12 +768,59 @@
                 quantity: quantity
             });
         });
+
+        // Buy Now button handler
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-buy-now');
+            if (!btn) return;
+            e.preventDefault();
+            
+            // Check authentication first
+            if (!window.isAuthenticated) {
+                if (typeof openLoginPopup === 'function') openLoginPopup();
+                return;
+            }
+            
+            const productId = btn.dataset.productId;
+            const qtyInput = document.getElementById('quantity');
+            const quantity = qtyInput ? parseInt(qtyInput.value, 10) || 1 : 1;
+            
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("cart.buy-now") }}';
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrf;
+            form.appendChild(csrfInput);
+            
+            const productInput = document.createElement('input');
+            productInput.type = 'hidden';
+            productInput.name = 'product_id';
+            productInput.value = productId;
+            form.appendChild(productInput);
+            
+            const qtyFormInput = document.createElement('input');
+            qtyFormInput.type = 'hidden';
+            qtyFormInput.name = 'quantity';
+            qtyFormInput.value = quantity;
+            form.appendChild(qtyFormInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
     })();
     </script>
     @include('components.pop-up.required_login-popup')
     <script>
     (function() {
         function openLoginPopup(message) {
+            // Only show popup if user is NOT authenticated
+            if (window.isAuthenticated) {
+                return;
+            }
             const modal = document.getElementById('required-login-popup');
             if (!modal) return;
             const msgEl = document.getElementById('required-login-popup-message');

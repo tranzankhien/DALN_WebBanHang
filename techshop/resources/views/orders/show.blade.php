@@ -57,48 +57,11 @@
         </div>
         @endif
 
-        <!-- Order Header -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Đơn hàng #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</h1>
-                    <p class="text-sm text-gray-600 mt-1">Đặt ngày {{ $order->created_at->format('d/m/Y H:i') }}</p>
-                </div>
-                <div>
-                    @php
-                        $statusColors = [
-                            'pending' => 'bg-yellow-100 text-yellow-800',
-                            'confirmed' => 'bg-blue-100 text-blue-800',
-                            'shipped' => 'bg-purple-100 text-purple-800',
-                            'completed' => 'bg-green-100 text-green-800',
-                            'cancelled' => 'bg-red-100 text-red-800',
-                        ];
-                        $colorClass = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
-                    @endphp
-                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium {{ $colorClass }}">
-                        {{ $order->status_label }}
-                    </span>
-                </div>
-            </div>
-
-            @if($order->isCancellable())
-            <div class="flex justify-end">
-                <button type="button"
-                        data-order-id="{{ $order->id }}"
-                        class="cancel-order-btn px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
-                    Hủy đơn hàng
-                </button>
-            </div>
-            @endif
-
-            @if($order->status === 'cancelled' && $order->cancel_reason)
-            <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p class="text-sm font-medium text-red-800">Lý do hủy:</p>
-                <p class="text-sm text-red-700 mt-1">{{ $order->cancel_reason }}</p>
-                <p class="text-xs text-red-600 mt-1">Hủy lúc: {{ $order->cancelled_at->format('d/m/Y H:i') }}</p>
-            </div>
-            @endif
+        @if(session('error'))
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            {{ session('error') }}
         </div>
+        @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Order Items -->
@@ -147,9 +110,47 @@
                 <!-- Payment & Summary -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Thanh toán</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">Thông tin đơn hàng</h2>
                     </div>
-                    <div class="p-6 space-y-3">
+                    <div class="p-6 space-y-4">
+                        <!-- Order Info -->
+                        <div class="pb-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-gray-600">Mã đơn hàng:</p>
+                                <p class="font-bold text-gray-900">#{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</p>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-gray-600">Thời gian đặt:</p>
+                                <p class="text-sm font-medium text-gray-900">{{ $order->created_at->format('d/m/Y H:i') }}</p>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-gray-600">Trạng thái:</p>
+                                @php
+                                    $statusColors = [
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
+                                        'confirmed' => 'bg-blue-100 text-blue-800',
+                                        'shipped' => 'bg-purple-100 text-purple-800',
+                                        'completed' => 'bg-green-100 text-green-800',
+                                        'cancelled' => 'bg-red-100 text-red-800',
+                                    ];
+                                    $colorClass = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-800';
+                                @endphp
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $colorClass }}">
+                                    {{ $order->status_label }}
+                                </span>
+                            </div>
+                        </div>
+
+                        @if($order->status === 'cancelled' && $order->cancel_reason)
+                        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p class="text-sm font-medium text-red-800">Lý do hủy:</p>
+                            <p class="text-sm text-red-700 mt-1">{{ $order->cancel_reason }}</p>
+                            <p class="text-xs text-red-600 mt-1">Hủy lúc: {{ $order->cancelled_at->format('d/m/Y H:i') }}</p>
+                        </div>
+                        @endif
+
+                        <!-- Payment Summary -->
+                        <div class="pt-4 border-t border-gray-200 space-y-3">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Tạm tính:</span>
                             <span class="font-medium text-gray-900">{{ number_format($order->total_amount - 30000, 0, ',', '.') }}₫</span>
@@ -191,6 +192,34 @@
                             <span class="inline-block mt-1 px-2 py-1 text-xs rounded {{ $paymentStatusColors[$order->payment->status] ?? 'bg-gray-100 text-gray-800' }}">
                                 {{ $paymentStatusLabels[$order->payment->status] ?? $order->payment->status }}
                             </span>
+                            
+                            @if(in_array($order->payment->status, ['pending', 'failed']) && $order->status !== 'cancelled')
+                            <div class="pt-4 border-t border-gray-200 space-y-3">
+                                <form action="{{ route('orders.retry-payment', $order->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                                        Thanh toán ngay
+                                    </button>
+                                </form>
+                                
+                                @if($order->isCancellable())
+                                <button type="button"
+                                        data-order-id="{{ $order->id }}"
+                                        class="cancel-order-btn w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
+                                    Hủy đơn hàng
+                                </button>
+                                @endif
+                            </div>
+                            @elseif($order->isCancellable())
+                            <div class="pt-4 border-t border-gray-200">
+                                <button type="button"
+                                        data-order-id="{{ $order->id }}"
+                                        class="cancel-order-btn w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
+                                    Hủy đơn hàng
+                                </button>
+                            </div>
+                            @endif
                         </div>
                         @endif
                     </div>

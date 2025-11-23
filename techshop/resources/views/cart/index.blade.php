@@ -42,29 +42,6 @@
             @endif
         </div>
 
-        <!-- Success/Error Messages -->
-        @if(session('success'))
-        <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-green-700 font-medium">{{ session('success') }}</p>
-            </div>
-        </div>
-        @endif
-
-        @if(session('error'))
-        <div class="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-red-700 font-medium">{{ session('error') }}</p>
-            </div>
-        </div>
-        @endif
-
         @if($cartItems->count() > 0)
         <!-- Cart Header -->
         <div class="bg-white rounded-t-lg shadow-sm p-4 mb-2">
@@ -463,8 +440,33 @@
                 return;
             }
             
-            // Redirect to checkout page
-            window.location.href = '{{ route("checkout.index") }}';
+            // Collect selected item IDs
+            const selectedItems = [];
+            checkboxes.forEach(cb => {
+                selectedItems.push(cb.getAttribute('data-item-id'));
+            });
+            
+            // Create form to send selected items
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("checkout.index") }}';
+            
+            // CSRF token
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = '{{ csrf_token() }}';
+            form.appendChild(csrfInput);
+            
+            // Selected items
+            const itemsInput = document.createElement('input');
+            itemsInput.type = 'hidden';
+            itemsInput.name = 'selected_items';
+            itemsInput.value = JSON.stringify(selectedItems);
+            form.appendChild(itemsInput);
+            
+            document.body.appendChild(form);
+            form.submit();
         }
 
         // Initialize on page load
