@@ -124,7 +124,7 @@
         <!-- Description -->
         <div class="mt-6">
             <label for="description" class="block text-sm font-medium text-gray-700">Mô tả chi tiết</label>
-            <textarea name="description" id="description" rows="6"
+            <textarea name="description" id="editor" rows="6"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description') }}</textarea>
         </div>
 
@@ -157,7 +157,14 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 <script>
+    ClassicEditor
+        .create(document.querySelector('#editor'))
+        .catch(error => {
+            console.error(error);
+        });
+
     let imageCount = 1;
 
     // Auto-fill product name and price from inventory
