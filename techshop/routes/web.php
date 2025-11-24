@@ -107,6 +107,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::get('orders/check-new', [App\Http\Controllers\Admin\OrderController::class, 'checkNewOrders'])->name('orders.check-new');
 
     // User Management (Quản lý người dùng)
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);

@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+<!-- @extends('admin.layouts.app')
 
 @section('title', 'Sửa Người dùng')
 
@@ -77,4 +77,4 @@
         </div>
     </form>
 </div>
-@endsection
+@endsection -->
