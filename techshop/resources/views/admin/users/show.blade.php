@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+<!-- @extends('admin.layouts.app')
 
 @section('title', 'Chi tiết Người dùng')
 
@@ -19,7 +19,6 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- User Profile Card -->
     <div class="lg:col-span-1">
         <div class="bg-white shadow rounded-lg overflow-hidden">
             <div class="p-6">
@@ -83,7 +82,6 @@
             </div>
         </div>
 
-        <!-- Addresses -->
         <div class="bg-white shadow rounded-lg overflow-hidden mt-6">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-medium text-gray-900">Sổ địa chỉ</h3>
@@ -113,7 +111,6 @@
         </div>
     </div>
 
-    <!-- Recent Orders -->
     <div class="lg:col-span-2">
         <div class="bg-white shadow rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -186,4 +183,4 @@
         </div>
     </div>
 </div>
-@endsection
+@endsection -->

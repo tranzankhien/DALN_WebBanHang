@@ -46,4 +46,15 @@ class OrderController extends Controller
 
         return back()->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
     }
+
+    public function checkNewOrders(Request $request)
+    {
+        $latestOrder = Order::latest()->first();
+        $pendingCount = Order::where('status', 'pending')->count();
+
+        return response()->json([
+            'latest_id' => $latestOrder ? $latestOrder->id : 0,
+            'pending_count' => $pendingCount
+        ]);
+    }
 }

@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+<!-- @extends('admin.layouts.app')
 
 @section('title', 'Quản lý Người dùng')
 
@@ -13,7 +13,6 @@
     </a>
 </div>
 
-<!-- Filters -->
 <div class="bg-white shadow rounded-lg p-4 mb-6">
     <form method="GET" action="{{ route('admin.users.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="md:col-span-2">
@@ -35,7 +34,6 @@
     </form>
 </div>
 
-<!-- Users Table -->
 <div class="bg-white shadow rounded-lg overflow-hidden">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -114,4 +112,4 @@
         {{ $users->links() }}
     </div>
 </div>
-@endsection
+@endsection -->
