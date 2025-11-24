@@ -48,45 +48,87 @@
         @endif
     </div>
 
+    <style>
+    /* Category slide animation helpers */
+    .category-slide-pre {
+        transform: translateY(-18px);
+        opacity: 0;
+    }
+    .category-slide-in {
+        transition: transform 480ms cubic-bezier(.22,.9,.12,1), opacity 480ms ease;
+        transform: translateY(0);
+        opacity: 1;
+    }
+    </style>
+
     <script>
-    // Smooth scroll to category sections when clicking top-category anchors.
-    // Anchors have data-target="#category-{id}" and data-category-id="{id}".
+    // Enhanced smooth scroll to category sections + slide-in animation
     (function() {
+        // Use native smooth behaviour where available
+        try { document.documentElement.style.scrollBehavior = 'smooth'; } catch(e){}
+
         function scrollToSectionById(id) {
             var section = document.getElementById(id) || document.querySelector('[data-category-id="' + id + '"]');
             if (!section) return;
             var header = document.querySelector('header');
-            var offset = header ? header.offsetHeight + 12 : 12; // give some breathing room
-            var top = section.getBoundingClientRect().top + window.scrollY - offset;
-            window.scrollTo({
-                top: top,
-                behavior: 'smooth'
-            });
-            try {
-                history.replaceState(null, null, '#' + id);
-            } catch (e) {}
+            var offset = header ? header.offsetHeight + 12 : 12;
+            var rect = section.getBoundingClientRect();
+            var targetY = window.scrollY + rect.top - offset;
+
+            // Prepare slide: mark section as pre (slightly above & invisible)
+            section.classList.remove('category-slide-in');
+            section.classList.add('category-slide-pre');
+
+            // Small delay to ensure pre-class applied before scroll
+            setTimeout(function() {
+                window.scrollTo({ top: Math.max(0, Math.floor(targetY)), behavior: 'smooth' });
+
+                // After scroll finishes (approx), animate in. Delay tuned to match smooth timing.
+                setTimeout(function() {
+                    section.classList.remove('category-slide-pre');
+                    section.classList.add('category-slide-in');
+                    try { history.replaceState(null, null, '#'+id); } catch (e){}
+                }, 520);
+            }, 18);
         }
 
         document.querySelectorAll('a[data-target], a[data-category-id]').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
-                // allow opening in new tab with modifier keys
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
                 e.preventDefault();
                 var target = this.dataset.target || this.getAttribute('href');
                 if (!target) return;
-                // target may be like '#category-5' or 'category-5'
                 var id = target.replace(/^#/, '');
-                // If the id is numeric only, try data-category-id first
-                if (/^\d+$/.test(id)) {
-                    // numeric id -> look for section with matching data-category-id
-                    scrollToSectionById(id);
-                } else {
-                    scrollToSectionById(id);
-                }
+                scrollToSectionById(id);
             });
         });
     })();
     </script>
+
+    <!-- Category tiles (quick anchors) -->
+    <section class="py-8 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-center text-2xl font-bold text-gray-900 mb-6">Danh mục sản phẩm</h3>
+            <div class="flex items-center justify-center">
+                <div class="mx-auto max-w-3xl flex flex-wrap justify-center gap-10">
+                    @foreach($categories->take(8) as $cat)
+                    <a href="#category-{{ $cat->id }}" data-target="#category-{{ $cat->id }}" data-category-id="{{ $cat->id }}" class="block w-36">
+                        <div class="bg-gray-50 rounded-xl hover:shadow-md transition-transform duration-200 transform hover:-translate-y-1 p-6 flex flex-col items-center">
+                            <div class="h-20 w-20 rounded-full flex items-center justify-center bg-white border border-gray-200 shadow-sm">
+                                @if(!empty($cat->image_url))
+                                    <img src="{{ $cat->image_url }}" alt="{{ $cat->name }}" class="h-16 w-16 rounded-full object-cover" />
+                                @else
+                                    <span class="text-lg text-gray-700">{{ strtoupper(mb_substr($cat->name,0,1)) }}</span>
+                                @endif
+                            </div>
+                            <div class="mt-3 text-base text-gray-600 text-center truncate w-full">{{ \Illuminate\Support\Str::limit($cat->name, 18) }}</div>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Featured Products -->
     <section class="py-12 bg-white">
@@ -290,11 +332,25 @@
     </section>
 
     
+    <!-- Toast container for this page -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50"></div>
     <script>
         (function () {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             window.isAuthenticated = @json(Auth::check());
             window.currentUser = @json(Auth::check() ? Auth::user()->only(['id','email']) : null);
+
+            function showToast(message, type = 'success', duration = 3000) {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const el = document.createElement('div');
+                el.className = (type === 'error' ? 'bg-red-500' : 'bg-green-600') + ' text-white px-4 py-3 rounded shadow-lg mb-2 max-w-sm flex items-center gap-3';
+                el.style.opacity = '0';
+                el.innerHTML = `<div class="flex-1 text-sm">${message}</div>`;
+                container.appendChild(el);
+                requestAnimationFrame(() => { el.style.transition = 'opacity 200ms'; el.style.opacity = '1'; });
+                setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 250); }, duration);
+            }
 
             async function addToCart(options) {
                 const url = options.url;
@@ -304,27 +360,11 @@
                 try {
                     if (method === 'GET') {
                         const res = await fetch(url, { method: 'GET', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                        if (res.ok) { 
-                            if (typeof window.showToast === 'function') {
-                                window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-                            }
-                            if (typeof window.updateCartCount === 'function') {
-                                window.updateCartCount();
-                            }
-                            return true; 
-                        }
+                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
                     } else {
                         const form = new FormData(); if (productId) form.append('product_id', productId); form.append('quantity', quantity);
                         const res = await fetch(url, { method: method, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf }, body: form });
-                        if (res.ok) { 
-                            if (typeof window.showToast === 'function') {
-                                window.showToast('✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-                            }
-                            if (typeof window.updateCartCount === 'function') {
-                                window.updateCartCount();
-                            }
-                            return true; 
-                        }
+                        if (res.ok) { showToast('Bạn đã thêm sản phẩm vào giỏ hàng', 'success'); return true; }
                     }
                 } catch (e) {}
                 if (typeof openLoginPopup === 'function') openLoginPopup();
@@ -398,15 +438,9 @@
     @include('components.pop-up.required_login-popup')
     <script>
         (function () {
-            function openLoginPopup(message) {
-                // Only show popup if user is NOT authenticated
-                if (window.isAuthenticated) {
-                    return;
-                }
+            function openLoginPopup() {
                 const modal = document.getElementById('required-login-popup');
                 if (!modal) return;
-                const msgEl = document.getElementById('required-login-popup-message');
-                if (msgEl && message) msgEl.textContent = message;
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 modal.setAttribute('aria-hidden', 'false');

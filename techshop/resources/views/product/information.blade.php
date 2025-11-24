@@ -14,6 +14,12 @@
 <body class="bg-gray-50">
     <!-- Header / Navigation -->
     @include('layouts.navigation')
+    <a href="#" class="hidden lg:block fixed top-24 left-6 z-40" style="transform: translateY(0);">
+        <img src="https://cdn.hstatic.net/files/200000722513/file/gearvn-laptop-t11-sticky-banner.jpg" alt="Left Banner" class="h-72 w-auto rounded-lg shadow-lg object-cover">
+    </a>
+    <a href="#" class="hidden lg:block fixed top-24 right-6 z-40" style="transform: translateY(0);">
+        <img src="https://cdn.hstatic.net/files/200000722513/file/gearvn-laptop-t11-sticky-banner.jpg" alt="Right Banner" class="h-72 w-auto rounded-lg shadow-lg object-cover">
+    </a>
     <!-- Breadcrumb -->
     <div class="bg-white border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -47,10 +53,17 @@
                     $imageArray = $images->values()->all();
                     $mainImageIndex = 0;
                     foreach($imageArray as $index => $img) {
-                    if($img->is_main) {
-                    $mainImageIndex = $index;
-                    break;
+                        if($img->is_main) {
+                            $mainImageIndex = $index;
+                            break;
+                        }
                     }
+                    // Prepare a minimal JS-friendly images array (only include properties we need)
+                    $jsImages = [];
+                    foreach($imageArray as $img) {
+                        $jsImages[] = [
+                            'image_url' => $img->image_url ?? null,
+                        ];
                     }
                     @endphp
 
@@ -132,20 +145,6 @@
                     </div>
                 </div>
 
-                <!-- Category -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
-                            </path>
-                        </svg>
-                        <span class="font-semibold text-gray-700">Danh mục:</span>
-                        <span class="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-sm shadow-md">
-                            {{ optional($product->inventoryItem->category)->name ?? 'Chưa phân loại' }}
-                        </span>
-                    </div>
-                </div>
 
                 <!-- Product Attributes / Specifications -->
                 @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count()
@@ -351,6 +350,28 @@
                 @if(isset($product->inventoryItem->attributeValues) && $product->inventoryItem->attributeValues->count()
                 > 0)
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden sticky top-4">
+                    @php
+                    // Resolve brand/manufacturer name from common locations or from attributes
+                    $brandName = null;
+                    // Common direct relationships/fields
+                    if (isset($product->brand) && is_object($product->brand)) {
+                        $brandName = $product->brand->name ?? $brandName;
+                    }
+                    $brandName = $brandName ?? ($product->brand_name ?? null);
+                    $brandName = $brandName ?? ($product->manufacturer ?? null);
+                    $brandName = $brandName ?? optional($product->inventoryItem->brand)->name;
+
+                    // Fallback: check attribute values for something like 'hãng' or 'thương hiệu' or 'brand'
+                    if (!$brandName && isset($product->inventoryItem->attributeValues)) {
+                        foreach ($product->inventoryItem->attributeValues as $av) {
+                            $attrName = mb_strtolower($av->attribute->name ?? '');
+                            if (str_contains($attrName, 'hãng') || str_contains($attrName, 'thuong') || str_contains($attrName, 'thương') || str_contains($attrName, 'brand') || str_contains($attrName, 'hãng')) {
+                                $brandName = $av->value;
+                                break;
+                            }
+                        }
+                    }
+                    @endphp
                     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-4">
                         <h3 class="font-bold text-white text-lg flex items-center gap-2">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,13 +385,26 @@
                     <div class="p-5">
                         <table class="w-full">
                             <tbody class="divide-y divide-gray-200">
+                                @if(!empty($brandName))
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-3 pr-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                            <span class="text-sm font-semibold text-gray-700">Hãng</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <span class="text-sm font-bold text-gray-900">{{ $brandName }}</span>
+                                    </td>
+                                </tr>
+                                @endif
+
                                 @foreach($product->inventoryItem->attributeValues as $av)
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="py-3 pr-4">
                                         <div class="flex items-center gap-2">
                                             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                            <span
-                                                class="text-sm font-semibold text-gray-700">{{ $av->attribute->name }}</span>
+                                            <span class="text-sm font-semibold text-gray-700">{{ $av->attribute->name }}</span>
                                         </div>
                                     </td>
                                     <td class="py-3 text-right">
@@ -562,12 +596,10 @@
     <script>
     // Image Gallery Navigation + robust fallback handling
     const FALLBACK_IMG = 'https://cdn-icons-png.flaticon.com/512/679/679720.png';
-    const images = @json($imageArray ?? []);
-    let currentIndex = {
-        {
-            $mainImageIndex ?? 0
-        }
-    };
+    // Use a minimal JS-friendly images array to avoid serializing Eloquent internals
+    const images = @json($jsImages ?? []);
+    // currentIndex must be a number
+    let currentIndex = @json($mainImageIndex ?? 0);
 
     function applyImgFallback(img) {
         if (!img) return;
@@ -623,44 +655,57 @@
     // Quantity Controls
     function decreaseQty() {
         const qtyInput = document.getElementById('quantity');
-        const currentQty = parseInt(qtyInput.value) || 1;
+        if (!qtyInput) return;
+        let currentQty = parseInt(qtyInput.value, 10) || 1;
         if (currentQty > 1) {
-            qtyInput.value = currentQty - 1;
+            currentQty = Math.max(1, currentQty - 1);
+            qtyInput.value = currentQty;
             updateHiddenQuantities();
         }
     }
 
     function increaseQty() {
         const qtyInput = document.getElementById('quantity');
-        const maxQty = parseInt(qtyInput.getAttribute('max')) || 999;
-        const currentQty = parseInt(qtyInput.value) || 1;
+        if (!qtyInput) return;
+        const maxQty = parseInt(qtyInput.getAttribute('max'), 10) || 999;
+        let currentQty = parseInt(qtyInput.value, 10) || 1;
         if (currentQty < maxQty) {
-            qtyInput.value = currentQty + 1;
+            currentQty = Math.min(maxQty, currentQty + 1);
+            qtyInput.value = currentQty;
             updateHiddenQuantities();
         }
     }
 
     function updateHiddenQuantities() {
-        const qty = document.getElementById('quantity').value;
-        const cartInput = document.getElementById('cart-quantity');
-        if (cartInput) {
-            cartInput.value = qty;
-        }
-        const orderInput = document.getElementById('order-quantity');
-        if (orderInput) {
-            orderInput.value = qty;
-        }
+        const qtyEl = document.getElementById('quantity');
+        if (!qtyEl) return;
+        const qty = qtyEl.value;
+
+        // Update any elements that might hold the quantity: duplicate ids, order input, or inputs named 'quantity'
+        document.querySelectorAll('#cart-quantity').forEach(el => {
+            try { el.value = qty; } catch (e) {}
+        });
+        document.querySelectorAll('#order-quantity').forEach(el => {
+            try { el.value = qty; } catch (e) {}
+        });
+        document.querySelectorAll('input[name="quantity"]').forEach(el => {
+            if (el.id === 'quantity') return; // skip the main control
+            try { el.value = qty; } catch (e) {}
+        });
     }
 
     // Update hidden inputs when quantity changes manually
-    document.getElementById('quantity')?.addEventListener('change', function() {
-        const maxQty = parseInt(this.getAttribute('max')) || 999;
-        let value = parseInt(this.value) || 1;
-        if (value < 1) value = 1;
-        if (value > maxQty) value = maxQty;
-        this.value = value;
-        updateHiddenQuantities();
-    });
+    const qtyControl = document.getElementById('quantity');
+    if (qtyControl) {
+        qtyControl.addEventListener('change', function() {
+            const maxQty = parseInt(this.getAttribute('max'), 10) || 999;
+            let value = parseInt(this.value, 10) || 1;
+            if (value < 1) value = 1;
+            if (value > maxQty) value = maxQty;
+            this.value = value;
+            updateHiddenQuantities();
+        });
+    }
 
     // attach fallback handlers on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
