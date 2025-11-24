@@ -1,4 +1,4 @@
-<aside class="w-64 bg-white border-r border-slate-200 text-slate-600 min-h-screen flex flex-col shadow-xl transition-all duration-300 z-20">
+<aside class="w-64 bg-white border-r border-slate-200 text-slate-600 fixed inset-y-0 left-0 h-screen flex flex-col shadow-xl transition-all duration-300 z-20">
     <!-- Logo / Brand -->
     <div class="h-16 flex items-center justify-center border-b border-slate-200 bg-white">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2">
