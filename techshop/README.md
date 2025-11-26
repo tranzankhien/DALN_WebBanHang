@@ -22,19 +22,6 @@ Website bán các đồ điện tử như: màn hình, sạc, tai nghe, điện 
 
 ---
 
-## 📚 Tài liệu chi tiết
-
-| Document | Description |
-|----------|-------------|
-| [DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md) | ERD và cấu trúc 16 bảng dữ liệu |
-| [ADMIN_SETUP_STATUS.md](ADMIN_SETUP_STATUS.md) | Trạng thái Admin Panel và features |
-| [TESTING_GUIDE.md](TESTING_GUIDE.md) | Hướng dẫn test Admin Panel đầy đủ |
-| [SOCIAL_LOGIN_INTEGRATION.md](SOCIAL_LOGIN_INTEGRATION.md) | ⭐ **MỚI**: Chi tiết tích hợp Social Login |
-| [QUICK_START.md](QUICK_START.md) | Hướng dẫn nhanh cho dev |
-| [PROJECT_SETUP_COMPLETE.md](PROJECT_SETUP_COMPLETE.md) | Summary setup project |
-
----
-
 ## 📦 Cài đặt
 
 ### 1. Clone project
