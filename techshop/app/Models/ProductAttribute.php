@@ -10,6 +10,7 @@ class ProductAttribute extends Model
         'category_id',
         'name',
         'unit',
+        'input_type',
     ];
 
     // Relationships

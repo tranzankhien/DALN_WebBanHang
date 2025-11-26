@@ -3,421 +3,424 @@
 @section('title', 'Chỉnh sửa Danh mục')
 
 @section('content')
-<div class="mb-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Chỉnh sửa Danh mục</h1>
-            <p class="mt-1 text-sm text-gray-600">Cập nhật thông tin danh mục</p>
-        </div>
-        <a href="{{ route('admin.categories.show', $category->id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Quay lại
-        </a>
-    </div>
-</div>
-
-<div class="bg-white shadow rounded-lg overflow-hidden">
-    <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" id="categoryForm">
-        @csrf
-        @method('PUT')
-        
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-900">Thông tin danh mục</h2>
+<!-- Background with solid color -->
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-gray-900 flex items-center" style="font-size: 30px; font-weight: 800; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                        Chỉnh sửa Danh Mục
+                    </h1>
+                </div>
+                <a href="{{ route('admin.categories.index') }}" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg font-semibold text-white hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5" style="border-radius: 30px; background-color: #000000ff;">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    <span class="font-semibold">Quay lại</span>
+                </a>
+            </div>
         </div>
 
-        <div class="px-6 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Category Name -->
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">
-                        Tên danh mục <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" 
-                           name="name" 
-                           id="name" 
-                           value="{{ old('name', $category->name) }}" 
-                           required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 
-                                  @error('name') border-red-500 @enderror">
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                    <p class="mt-1 text-xs text-gray-500">Tên hiển thị của danh mục</p>
-                </div>
-
-                <!-- Slug -->
-                <div>
-                    <label for="slug" class="block text-sm font-medium text-gray-700">
-                        Slug (URL) <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 flex rounded-md shadow-sm">
-                        <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                            /category/
-                        </span>
-                        <input type="text" 
-                               name="slug" 
-                               id="slug" 
-                               value="{{ old('slug', $category->slug) }}" 
-                               required
-                               class="flex-1 block w-full rounded-none rounded-r-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 
-                                      @error('slug') border-red-500 @enderror">
-                    </div>
-                    @error('slug')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                    <p class="mt-1 text-xs text-gray-500">URL thân thiện (chỉ chữ thường, số và gạch ngang)</p>
-                </div>
-
-                <!-- Status -->
-                <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">
-                        Trạng thái <span class="text-red-500">*</span>
-                    </label>
-                    <div class="mt-1 grid grid-cols-2 gap-3">
-                        <label class="relative flex items-center p-3 cursor-pointer border rounded-lg 
-                                      {{ old('status', $category->status) == 'active' ? 'border-blue-500 bg-blue-50' : 'border-gray-300' }}">
-                            <input type="radio" 
-                                   name="status" 
-                                   value="active" 
-                                   {{ old('status', $category->status) == 'active' ? 'checked' : '' }}
-                                   class="sr-only"
-                                   onchange="updateStatusStyle(this)">
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center mr-3 
-                                           {{ old('status', $category->status) == 'active' ? 'border-blue-500' : 'border-gray-300' }}">
-                                    <div class="w-2 h-2 rounded-full bg-blue-500 {{ old('status', $category->status) == 'active' ? '' : 'hidden' }}"></div>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-sm">Hoạt động</p>
-                                    <p class="text-xs text-gray-500">Hiển thị công khai</p>
-                                </div>
-                            </div>
-                        </label>
-                        <label class="relative flex items-center p-3 cursor-pointer border rounded-lg 
-                                      {{ old('status', $category->status) == 'inactive' ? 'border-red-500 bg-red-50' : 'border-gray-300' }}">
-                            <input type="radio" 
-                                   name="status" 
-                                   value="inactive" 
-                                   {{ old('status', $category->status) == 'inactive' ? 'checked' : '' }}
-                                   class="sr-only"
-                                   onchange="updateStatusStyle(this)">
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center mr-3 
-                                           {{ old('status', $category->status) == 'inactive' ? 'border-red-500' : 'border-gray-300' }}">
-                                    <div class="w-2 h-2 rounded-full bg-red-500 {{ old('status', $category->status) == 'inactive' ? '' : 'hidden' }}"></div>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-sm">Không hoạt động</p>
-                                    <p class="text-xs text-gray-500">Ẩn khỏi trang web</p>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Display Order -->
-                <div>
-                    <label for="display_order" class="block text-sm font-medium text-gray-700">
-                        Thứ tự hiển thị
-                    </label>
-                    <input type="number" 
-                           name="display_order" 
-                           id="display_order" 
-                           value="{{ old('display_order', $category->display_order) }}" 
-                           min="0"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <p class="mt-1 text-xs text-gray-500">Số thứ tự hiển thị (nhỏ hơn sẽ hiển thị trước)</p>
-                </div>
-
-                <!-- Image URL -->
-                <div>
-                    <label for="image_url" class="block text-sm font-medium text-gray-700">
-                        URL ảnh đại diện
-                    </label>
-                    <input type="url" 
-                           name="image_url" 
-                           id="image_url" 
-                           value="{{ old('image_url', $category->image_url) }}"
-                           placeholder="https://example.com/image.jpg"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                           onchange="previewImage(this)">
-                    <p class="mt-1 text-xs text-gray-500">Link đầy đủ đến hình ảnh</p>
-                </div>
-            </div>
-
-            <!-- Image Preview -->
-            @if($category->image_url)
-            <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Xem trước ảnh</label>
-                <div class="relative inline-block">
-                    <img id="imagePreview" 
-                         src="{{ $category->image_url }}" 
-                         alt="Preview" 
-                         class="h-32 w-auto rounded-lg shadow-md object-cover border-2 border-gray-200">
-                </div>
-            </div>
-            @endif
-
-            <!-- Description -->
-            <div class="mt-6">
-                <label for="description" class="block text-sm font-medium text-gray-700">
-                    Mô tả
-                </label>
-                <textarea name="description" 
-                          id="description" 
-                          rows="4"
-                          placeholder="Nhập mô tả chi tiết về danh mục..."
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $category->description) }}</textarea>
-                <p class="mt-1 text-xs text-gray-500">Mô tả chi tiết về danh mục (tùy chọn)</p>
-            </div>
-
-            <!-- Attributes Management Section - MOVED INSIDE FORM -->
-            <div class="mt-8 border-t pt-6">
-                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                                <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
-                                Thuộc tính Sản phẩm
-                            </h3>
-                            <p class="text-sm text-gray-600 mt-1">Quản lý các đặc điểm kỹ thuật cho sản phẩm thuộc danh mục này</p>
-                        </div>
-                        <button type="button" onclick="openAddAttributeModal()" 
-                                class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 shadow-md transition">
-                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" id="categoryForm">
+                @csrf
+                @method('PUT')
+                
+                <!-- Header Section -->
+                <div class="px-8 py-6 border-b-4 border-blue-700">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-white/20 rounded-2xl">
+                            <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                            Thêm thuộc tính
+                        </div>
+                        <div class="ml-4">
+                            <h2 class="text-2xl font-bold">Thông Tin Danh Mục</h2>
+                            <p class="text-black-100 text-sm mt-1">Cập nhật thông tin cho danh mục {{ $category->name }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-8 py-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Category Name -->
+                        <div class="group">
+                            <label for="name" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                                <span class="w-1 h-6 bg-blue-600 rounded-full mr-2"></span>
+                                Tên danh mục <span class="text-red-500 ml-1">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="text" 
+                                       name="name" 
+                                       id="name" 
+                                       value="{{ old('name', $category->name) }}" 
+                                       required
+                                       placeholder="Nhập tên danh mục..."
+                                       class="block w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-gray-800 font-medium placeholder-gray-400 @error('name') border-red-500 @enderror">
+                            </div>
+                            @error('name')
+                                <p class="mt-2 text-sm text-red-600 font-medium flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <!-- Slug -->
+                        <div class="group">
+                            <label for="slug" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                                <span class="w-1 h-6 bg-purple-600 rounded-full mr-2"></span>
+                                Slug (URL) <span class="text-red-500 ml-1">*</span>
+                            </label>
+                            <div class="mt-1 flex rounded-xl shadow-sm overflow-hidden border-2 border-gray-200 focus-within:border-blue-500 transition-all">
+                                <span class="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-sm font-medium border-r-2 border-gray-200">
+                                    techshop.com/
+                                </span>
+                                <input type="text" 
+                                       name="slug" 
+                                       id="slug" 
+                                       value="{{ old('slug', $category->slug) }}" 
+                                       required
+                                       class="flex-1 block w-full px-4 py-3 border-0 focus:ring-0 text-gray-800 font-medium placeholder-gray-400">
+                            </div>
+                            @error('slug')
+                                <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="w-1 h-6 bg-green-600 rounded-full mr-2"></span>
+                                Trạng thái <span class="text-red-500 ml-1">*</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="relative flex items-center p-4 cursor-pointer border-2 rounded-xl transition-all {{ old('status', $category->status) == 'active' ? 'border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 scale-105' : 'border-gray-200 hover:border-green-200' }}">
+                                    <input type="radio" name="status" value="active" class="sr-only" {{ old('status', $category->status) == 'active' ? 'checked' : '' }} onchange="updateStatusStyle(this)">
+                                    <div class="w-6 h-6 border-2 rounded-full mr-3 flex items-center justify-center transition-colors {{ old('status', $category->status) == 'active' ? 'border-green-500' : 'border-gray-300' }}">
+                                        <div class="w-3 h-3 rounded-full bg-green-500 {{ old('status', $category->status) == 'active' ? '' : 'hidden' }}"></div>
+                                    </div>
+                                    <span class="font-bold text-gray-700">Hoạt động</span>
+                                </label>
+                                
+                                <label class="relative flex items-center p-4 cursor-pointer border-2 rounded-xl transition-all {{ old('status', $category->status) == 'inactive' ? 'border-red-500 bg-gradient-to-br from-red-50 to-pink-50 scale-105' : 'border-gray-200 hover:border-red-200' }}">
+                                    <input type="radio" name="status" value="inactive" class="sr-only" {{ old('status', $category->status) == 'inactive' ? 'checked' : '' }} onchange="updateStatusStyle(this)">
+                                    <div class="w-6 h-6 border-2 rounded-full mr-3 flex items-center justify-center transition-colors {{ old('status', $category->status) == 'inactive' ? 'border-red-500' : 'border-gray-300' }}">
+                                        <div class="w-3 h-3 rounded-full bg-red-500 {{ old('status', $category->status) == 'inactive' ? '' : 'hidden' }}"></div>
+                                    </div>
+                                    <span class="font-bold text-gray-700">Ẩn</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Display Order -->
+                        <div class="group">
+                            <label for="display_order" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                                <span class="w-1 h-6 bg-orange-500 rounded-full mr-2"></span>
+                                Thứ tự hiển thị
+                            </label>
+                            <div class="relative">
+                                <input type="number" 
+                                       name="display_order" 
+                                       id="display_order" 
+                                       value="{{ old('display_order', $category->display_order) }}" 
+                                       min="0"
+                                       class="block w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-100 transition-all text-gray-800 font-medium">
+                            </div>
+                        </div>
+
+                        <!-- Image URL -->
+                        <div class="group">
+                            <label for="image_url" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                                <span class="w-1 h-6 bg-pink-500 rounded-full mr-2"></span>
+                                URL ảnh đại diện
+                            </label>
+                            <div class="relative">
+                                <input type="url" 
+                                       name="image_url" 
+                                       id="image_url" 
+                                       value="{{ old('image_url', $category->image_url) }}"
+                                       placeholder="https://example.com/image.jpg"
+                                       class="block w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-pink-500 focus:ring-4 focus:ring-pink-100 transition-all text-gray-800 font-medium"
+                                       onchange="previewImage(this)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="mt-8 {{ $category->image_url ? '' : 'hidden' }}" id="imagePreviewContainer">
+                        <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Xem trước ảnh
+                        </label>
+                        <div class="relative inline-block group">
+                            <img id="imagePreview" 
+                                 src="{{ $category->image_url }}" 
+                                 alt="Preview" 
+                                 class="h-48 w-auto rounded-2xl shadow-2xl object-cover border-4 border-white ring-4 ring-purple-100 transition-transform group-hover:scale-105">
+                            <button type="button" 
+                                    onclick="removeImagePreview()"
+                                    class="absolute -top-3 -right-3 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition-all transform hover:scale-110 opacity-0 group-hover:opacity-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Attributes Section -->
+                    <div class="mt-10 border-t-4 border-dashed border-purple-200 pt-8">
+                        <div class="bg-purple-50 rounded-3xl p-8 border-3 border-purple-300 shadow-xl bg-gray-50" style="border-radius: 20px;">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                                        <span class="bg-purple-600 text-white p-2 rounded-lg mr-3 shadow-md">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                                            </svg>
+                                        </span>
+                                        Thuộc tính sản phẩm
+                                    </h3>
+                                    <p class="text-sm text-gray-500 mt-1 ml-12">Định nghĩa các thông số kỹ thuật cho sản phẩm thuộc danh mục này</p>
+                                </div>
+                                <button type="button" 
+                                        onclick="addAttributeRow()"
+                                        class="inline-flex items-center px-5 py-2.5 bg-purple-600 border border-transparent rounded-xl font-bold text-white hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-200 transition-all shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Thêm thuộc tính
+                                </button>
+                            </div>
+
+                            <div id="attributes-container" class="space-y-4">
+                                <!-- Existing Attributes -->
+                                @foreach($category->productAttributes as $index => $attribute)
+                                <div class="attribute-row bg-white rounded-2xl p-5 border-3 border-purple-300 shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1" data-index="{{ $index + 1 }}">
+                                    <input type="hidden" name="attributes[{{ $index + 1 }}][id]" value="{{ $attribute->id }}">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex-shrink-0 mt-3">
+                                            <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg">
+                                                <span class="text-black font-black text-base">{{ $index + 1 }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <!-- Attribute Name -->
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                                                    <svg class="w-4 h-4 mr-1 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                                    </svg>
+                                                    Tên thuộc tính <span class="text-red-500">*</span>
+                                                </label>
+                                                <input type="text" 
+                                                       name="attributes[{{ $index + 1 }}][name]" 
+                                                       value="{{ $attribute->name }}"
+                                                       required
+                                                       class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all font-medium">
+                                            </div>
+                                            
+                                            <!-- Unit -->
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                                                    <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                                                    </svg>
+                                                    Đơn vị <span class="text-gray-400 text-xs">(tuỳ chọn)</span>
+                                                </label>
+                                                <input type="text" 
+                                                       name="attributes[{{ $index + 1 }}][unit]" 
+                                                       value="{{ $attribute->unit }}"
+                                                       class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium">
+                                            </div>
+                                            
+                                            <!-- Input Type -->
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                                                    <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    Kiểu nhập liệu
+                                                </label>
+                                                <select name="attributes[{{ $index + 1 }}][input_type]"
+                                                        class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all font-medium">
+                                                    <option value="text" {{ $attribute->input_type == 'text' ? 'selected' : '' }}>📝 Text (Văn bản)</option>
+                                                    <option value="number" {{ $attribute->input_type == 'number' ? 'selected' : '' }}>🔢 Number (Số)</option>
+                                                    <option value="select" {{ $attribute->input_type == 'select' ? 'selected' : '' }}>📋 Select (Lựa chọn)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Remove Button -->
+                                        <button type="button" 
+                                                onclick="removeAttributeRow({{ $index + 1 }})"
+                                                class="flex-shrink-0 mt-2 p-2.5 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-110"
+                                                title="Xóa thuộc tính">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            
+                            <!-- Hidden flag to indicate attributes section was submitted -->
+                            <input type="hidden" name="attributes_submitted_flag" value="1">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mt-8">
+                        <label for="description" class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                            <span class="w-1 h-6 bg-gray-500 rounded-full mr-2"></span>
+                            Mô tả
+                        </label>
+                        <textarea name="description" 
+                                  id="description" 
+                                  rows="4"
+                                  placeholder="Nhập mô tả chi tiết về danh mục..."
+                                  class="mt-1 block w-full rounded-xl border-2 border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all px-4 py-3 text-gray-800 placeholder-gray-400 resize-none">{{ old('description', $category->description) }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="px-8 py-6 border-t-2 border-gray-200 flex items-center justify-between">
+                    <div class="text-sm text-gray-500 font-medium">
+                        <span class="text-blue-600">Lưu ý:</span> Các trường có dấu <span class="text-red-500">*</span> là bắt buộc
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="{{ route('admin.categories.index') }}" 
+                           class="px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all">
+                            Hủy bỏ
+                        </a>
+                        <button type="submit" 
+                                class="inline-flex items-center px-8 py-3 bg-blue-600 border border-transparent rounded-xl font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 transition-all shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-0.5">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Cập nhật
                         </button>
                     </div>
                 </div>
-
-                <!-- Info Box -->
-                <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="text-sm font-semibold text-blue-900">💡 Thuộc tính giúp mô tả chi tiết sản phẩm</h4>
-                            <div class="mt-2 text-xs text-blue-700 space-y-1">
-                                <p>• <strong>Laptop:</strong> CPU, RAM, Ổ cứng, Card đồ họa, Màn hình</p>
-                                <p>• <strong>Điện thoại:</strong> Camera, Pin, Chip, Màn hình</p>
-                                <p>• <strong>Tai nghe:</strong> Driver, Trở kháng, Độ nhạy, Kết nối</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Attributes List -->
-                @if($category->productAttributes->count() > 0)
-                <div class="space-y-2">
-                    @foreach($category->productAttributes as $attribute)
-                    <div class="flex items-center justify-between p-3 bg-white border border-purple-200 rounded-lg hover:shadow-md transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-semibold text-gray-900">{{ $attribute->name }}</h4>
-                                @if($attribute->unit)
-                                <p class="text-xs text-gray-600">Đơn vị: <span class="font-medium text-purple-600">{{ $attribute->unit }}</span></p>
-                                @else
-                                <p class="text-xs text-gray-500 italic">Không có đơn vị</p>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button type="button" onclick="editAttribute({{ $attribute->id }}, '{{ addslashes($attribute->name) }}', '{{ addslashes($attribute->unit ?? '') }}')"
-                                    class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Sửa
-                            </button>
-                            <form action="{{ route('admin.attributes.destroy', $attribute->id) }}" method="POST" class="inline" onsubmit="return confirm('Xóa thuộc tính này sẽ xóa tất cả giá trị liên quan. Bạn có chắc chắn?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition">
-                                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                    Xóa
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                @else
-                <div class="text-center py-8 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-                    <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                    </svg>
-                    <h3 class="mt-3 text-sm font-medium text-gray-900">Chưa có thuộc tính nào</h3>
-                    <p class="mt-1 text-xs text-gray-500 max-w-md mx-auto">
-                        Click nút "Thêm thuộc tính" ở trên để thêm đặc điểm kỹ thuật cho sản phẩm
-                    </p>
-                </div>
-                @endif
-            </div>
+            </form>
         </div>
-
-        <!-- Form Actions -->
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-            <div class="text-sm text-gray-500">
-                <span class="font-medium">Lưu ý:</span> Thay đổi sẽ được áp dụng ngay lập tức
-            </div>
-            <div class="flex space-x-3">
-                <a href="{{ route('admin.categories.show', $category->id) }}" 
-                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
-                    Hủy
-                </a>
-                <button type="submit" 
-                        class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 transition">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Lưu thay đổi
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
-
-<!-- Information Cards -->
-<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-<!-- Information Cards -->
-<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div class="flex items-start">
-            <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>
-                <h3 class="text-sm font-semibold text-blue-900">Slug tự động</h3>
-                <p class="mt-1 text-xs text-blue-700">Khi bạn nhập tên danh mục, slug sẽ tự động được tạo từ tên đó</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div class="flex items-start">
-            <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>
-                <h3 class="text-sm font-semibold text-green-900">Danh mục con</h3>
-                <p class="mt-1 text-xs text-green-700">{{ $category->children->count() }} danh mục con đang hoạt động</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <div class="flex items-start">
-            <svg class="w-6 h-6 text-purple-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-            </svg>
-            <div>
-                <h3 class="text-sm font-semibold text-purple-900">Sản phẩm</h3>
-                <p class="mt-1 text-xs text-purple-700">{{ $category->inventoryItems->count() }} sản phẩm trong danh mục</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-    </div>
-</div>
-
-<!-- Add/Edit Attribute Modal -->
-<div id="attributeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Thêm thuộc tính mới</h3>
-            <button onclick="closeAttributeModal()" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <form id="attributeForm" method="POST" action="{{ route('admin.attributes.store') }}">
-            @csrf
-            <input type="hidden" name="_method" id="formMethod" value="POST">
-            <input type="hidden" name="category_id" value="{{ $category->id }}">
-            <input type="hidden" id="attributeId" name="attribute_id" value="">
-            
-            <div class="space-y-4">
-                <div>
-                    <label for="attribute_name" class="block text-sm font-medium text-gray-700">Tên thuộc tính *</label>
-                    <input type="text" name="name" id="attribute_name" required
-                           placeholder="VD: CPU, RAM, Màn hình..."
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-                </div>
-
-                <div>
-                    <label for="attribute_unit" class="block text-sm font-medium text-gray-700">Đơn vị (tùy chọn)</label>
-                    <input type="text" name="unit" id="attribute_unit"
-                           placeholder="VD: GB, inch, MHz..."
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end space-x-3">
-                <button type="button" onclick="closeAttributeModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                    Hủy
-                </button>
-                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                    <span id="submitButtonText">Thêm thuộc tính</span>
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
 @push('scripts')
 <script>
-// Attribute Modal Functions
-function openAddAttributeModal() {
-    document.getElementById('modalTitle').textContent = 'Thêm thuộc tính mới';
-    document.getElementById('submitButtonText').textContent = 'Thêm thuộc tính';
-    document.getElementById('attributeForm').action = '{{ route("admin.attributes.store") }}';
-    document.getElementById('formMethod').value = 'POST';
-    document.getElementById('attributeId').value = '';
-    document.getElementById('attribute_name').value = '';
-    document.getElementById('attribute_unit').value = '';
-    document.getElementById('attributeModal').classList.remove('hidden');
+let attributeCount = {{ $category->productAttributes->count() }};
+
+// Add attribute row
+function addAttributeRow() {
+    attributeCount++;
+    const container = document.getElementById('attributes-container');
+    const row = document.createElement('div');
+    row.className = 'attribute-row bg-white rounded-2xl p-5 border-3 border-purple-300 shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1';
+    row.setAttribute('data-index', attributeCount);
+    
+    row.innerHTML = `
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 mt-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg">
+                    <span class="text-black font-black text-base">${attributeCount}</span>
+                </div>
+            </div>
+            <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Attribute Name -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        Tên thuộc tính <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="attributes[${attributeCount}][name]" 
+                           placeholder="VD: Kích cỡ, CPU..."
+                           required
+                           class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all font-medium">
+                </div>
+                
+                <!-- Unit -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                        </svg>
+                        Đơn vị <span class="text-gray-400 text-xs">(tuỳ chọn)</span>
+                    </label>
+                    <input type="text" 
+                           name="attributes[${attributeCount}][unit]" 
+                           placeholder="VD: inch, GB, Hz..."
+                           class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium">
+                </div>
+                
+                <!-- Input Type -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Kiểu nhập liệu
+                    </label>
+                    <select name="attributes[${attributeCount}][input_type]"
+                            class="w-full px-3 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all font-medium">
+                        <option value="text">📝 Text (Văn bản)</option>
+                        <option value="number">🔢 Number (Số)</option>
+                        <option value="select">📋 Select (Lựa chọn)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Remove Button -->
+            <button type="button" 
+                    onclick="removeAttributeRow(${attributeCount})"
+                    class="flex-shrink-0 mt-2 p-2.5 bg-red-500 text-white hover:bg-red-600 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-110"
+                    title="Xóa thuộc tính">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(row);
+    
+    // Animate entrance
+    setTimeout(() => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(-10px) scale(0.95)';
+        row.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        setTimeout(() => {
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0) scale(1)';
+        }, 10);
+    }, 0);
 }
 
-function editAttribute(id, name, unit) {
-    document.getElementById('modalTitle').textContent = 'Chỉnh sửa thuộc tính';
-    document.getElementById('submitButtonText').textContent = 'Cập nhật';
-    document.getElementById('attributeForm').action = '/admin/attributes/' + id;
-    document.getElementById('formMethod').value = 'PUT';
-    document.getElementById('attributeId').value = id;
-    document.getElementById('attribute_name').value = name;
-    document.getElementById('attribute_unit').value = unit || '';
-    document.getElementById('attributeModal').classList.remove('hidden');
-}
-
-function closeAttributeModal() {
-    document.getElementById('attributeModal').classList.add('hidden');
-}
-
-// Close modal when clicking outside
-document.getElementById('attributeModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAttributeModal();
+// Remove attribute row
+function removeAttributeRow(index) {
+    const row = document.querySelector(`[data-index="${index}"]`);
+    if (row) {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+            row.remove();
+            // Renumber remaining rows
+            const rows = document.querySelectorAll('.attribute-row');
+            rows.forEach((r, i) => {
+                const number = r.querySelector('.w-10 span');
+                if (number) number.textContent = i + 1;
+            });
+        }, 300);
     }
-});
+}
 
 // Auto-generate slug from name
 document.getElementById('name').addEventListener('input', function(e) {
@@ -434,13 +437,21 @@ document.getElementById('name').addEventListener('input', function(e) {
 
 // Preview image
 function previewImage(input) {
+    const container = document.getElementById('imagePreviewContainer');
     const preview = document.getElementById('imagePreview');
-    if (input.value && preview) {
+    
+    if (input.value) {
         preview.src = input.value;
-        preview.style.display = 'block';
-    } else if (!input.value && preview) {
-        preview.style.display = 'none';
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
     }
+}
+
+// Remove image preview
+function removeImagePreview() {
+    document.getElementById('image_url').value = '';
+    document.getElementById('imagePreviewContainer').classList.add('hidden');
 }
 
 // Update status radio button style
@@ -448,34 +459,55 @@ function updateStatusStyle(input) {
     const labels = input.closest('div').querySelectorAll('label');
     labels.forEach(label => {
         const radio = label.querySelector('input[type="radio"]');
-        const dot = label.querySelector('.w-2');
+        const dot = label.querySelector('.w-3');
+        const circle = label.querySelector('.w-6');
+        
         if (radio.checked) {
             if (radio.value === 'active') {
-                label.classList.add('border-blue-500', 'bg-blue-50');
-                label.classList.remove('border-gray-300', 'border-red-500', 'bg-red-50');
-                dot.classList.remove('hidden');
+                label.classList.add('border-green-500', 'bg-gradient-to-br', 'from-green-50', 'to-emerald-50', 'scale-105');
+                label.classList.remove('border-gray-200', 'hover:border-green-200', 'border-red-500', 'from-red-50', 'to-pink-50');
+                circle.classList.remove('border-gray-300', 'border-red-500');
+                circle.classList.add('border-green-500');
+                dot.classList.remove('hidden', 'bg-red-500');
+                dot.classList.add('bg-green-500');
             } else {
-                label.classList.add('border-red-500', 'bg-red-50');
-                label.classList.remove('border-gray-300', 'border-blue-500', 'bg-blue-50');
-                dot.classList.remove('hidden');
+                label.classList.add('border-red-500', 'bg-gradient-to-br', 'from-red-50', 'to-pink-50', 'scale-105');
+                label.classList.remove('border-gray-200', 'hover:border-red-200', 'border-green-500', 'from-green-50', 'to-emerald-50');
+                circle.classList.remove('border-gray-300', 'border-green-500');
+                circle.classList.add('border-red-500');
+                dot.classList.remove('hidden', 'bg-green-500');
+                dot.classList.add('bg-red-500');
             }
         } else {
-            label.classList.remove('border-blue-500', 'bg-blue-50', 'border-red-500', 'bg-red-50');
-            label.classList.add('border-gray-300');
+            label.classList.remove('border-green-500', 'from-green-50', 'to-emerald-50', 'border-red-500', 'from-red-50', 'to-pink-50', 'scale-105');
+            label.classList.add('border-gray-200');
+            circle.classList.remove('border-green-500', 'border-red-500');
+            circle.classList.add('border-gray-300');
             dot.classList.add('hidden');
         }
     });
 }
 
-// Form validation
+// Form validation before submit
 document.getElementById('categoryForm').addEventListener('submit', function(e) {
     const name = document.getElementById('name').value.trim();
-    const slug = document.getElementById('slug').value.trim();
     
-    if (!name || !slug) {
+    if (!name) {
         e.preventDefault();
-        alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+        alert('Vui lòng nhập tên danh mục!');
+        document.getElementById('name').focus();
         return false;
+    }
+    
+    // Validate attributes if any
+    const attributeInputs = document.querySelectorAll('[name^="attributes"][name$="[name]"]');
+    for (let input of attributeInputs) {
+        if (input.value.trim() === '') {
+            e.preventDefault();
+            alert('Vui lòng nhập tên cho tất cả các thuộc tính hoặc xóa bỏ!');
+            input.focus();
+            return false;
+        }
     }
 });
 </script>
