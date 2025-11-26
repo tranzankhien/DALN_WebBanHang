@@ -120,9 +120,55 @@ class CategoryController extends Controller
             'image_url' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive',
             'display_order' => 'nullable|integer|min:0',
+            'attributes' => 'nullable|array',
+            'attributes.*.id' => 'nullable|integer|exists:product_attributes,id',
+            'attributes.*.name' => 'required|string|max:100',
+            'attributes.*.unit' => 'nullable|string|max:50',
+            'attributes.*.input_type' => 'required|in:text,number,select',
         ]);
 
-        $category->update($validated);
+        $category->update([
+            'name' => $validated['name'],
+            'slug' => $validated['slug'],
+            'description' => $validated['description'] ?? null,
+            'image_url' => $validated['image_url'] ?? null,
+            'status' => $validated['status'],
+            'display_order' => $validated['display_order'],
+        ]);
+
+        // Handle attributes update
+        // We use a flag or check if attributes key exists to know if we should sync
+        // For now, we assume if the form is submitted, we process attributes.
+        
+        $submittedIds = [];
+        if (!empty($validated['attributes'])) {
+            foreach ($validated['attributes'] as $attr) {
+                if (isset($attr['id'])) {
+                    // Update existing
+                    $submittedIds[] = $attr['id'];
+                    ProductAttribute::where('id', $attr['id'])->update([
+                        'name' => $attr['name'],
+                        'unit' => $attr['unit'] ?? null,
+                        'input_type' => $attr['input_type'],
+                    ]);
+                } else {
+                    // Create new
+                    $newAttr = ProductAttribute::create([
+                        'category_id' => $category->id,
+                        'name' => $attr['name'],
+                        'unit' => $attr['unit'] ?? null,
+                        'input_type' => $attr['input_type'],
+                    ]);
+                    $submittedIds[] = $newAttr->id;
+                }
+            }
+        }
+        
+        // Delete attributes not in submission (only if we are sure this is a full update)
+        // We use a hidden flag 'attributes_submitted_flag' to know if the attributes section was present.
+        if ($request->has('attributes_submitted_flag') || $request->has('attributes')) {
+             $category->productAttributes()->whereNotIn('id', $submittedIds)->delete();
+        }
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Danh mục đã được cập nhật thành công!');

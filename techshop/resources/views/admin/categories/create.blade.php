@@ -34,10 +34,6 @@
         </div>
 
         <!-- Main Form Card -->
-        <div class="bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200">
-            <form action="{{ route('admin.categories.store') }}" method="POST" id="categoryForm">
-        @csrf
-        
             <form action="{{ route('admin.categories.store') }}" method="POST" id="categoryForm">
                 @csrf
                 
@@ -51,7 +47,7 @@
                         </div>
                         <div class="ml-4">
                             <h2 class="text-2xl font-bold">Thông Tin Danh Mục</h2>
-                            <p class="text-blue-100 text-sm mt-1">Điền đầy đủ thông tin để tạo danh mục mới</p>
+                            <p class="text-black-100 text-sm mt-1">Điền đầy đủ thông tin để tạo danh mục mới</p>
                         </div>
                     </div>
                 </div>
